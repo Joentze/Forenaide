@@ -1,11 +1,14 @@
+"""
+base class for pipeline step
+"""
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List
+from pipeline.model.StepDataModel import StepData
 
 
 class PipelineStep(ABC):
     """Abstract base class for a pipeline step."""
 
     @abstractmethod
-    def process(self, data: Any) -> Any:
+    async def process(self, data: StepData) -> StepData:
         """Processes the input data and returns the output data."""
-        pass
+        return
