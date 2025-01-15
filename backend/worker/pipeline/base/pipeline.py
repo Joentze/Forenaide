@@ -1,7 +1,8 @@
 """
 base class for pipeline
 """
-from typing import Any, List
+from typing import List
+from pipeline.model.StepDataModel import StepData
 from pipeline.base import PipelineStep
 
 
@@ -15,8 +16,8 @@ class Pipeline:
         """Adds a step to the pipeline."""
         self.steps.append(step)
 
-    def execute(self, data: Any) -> Any:
+    async def execute(self, data: StepData) -> StepData:
         """Executes the pipeline on the given data."""
         for step in self.steps:
-            data = step.process(data)
+            data = await step.process(data)
         return data

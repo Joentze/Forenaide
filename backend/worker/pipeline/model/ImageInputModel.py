@@ -21,4 +21,5 @@ class PagesImageInputModel(BaseModel):
     base model for page input model, one image per page
     """
     image_type: ImageType = ImageType.JPG
-    images: List[bytes]
+    # base64 encoded
+    images: List[str]

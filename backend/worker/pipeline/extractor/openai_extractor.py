@@ -77,25 +77,22 @@ class OpenAIImageExtractor(PipelineStep):
             for image in data.images
         ]
         results = await asyncio.gather(*tasks)
+
         return [*map(lambda result: result["instances"], results)]
 
-    async def _extract_format_from_image(self, image: bytes, extraction_config: SchemaConfiguration) -> Dict[str, Any]:
-        b64_image = self.convert_bytes_to_base64(image_bytes=image)
-        await tool_call_openai_model(
+    async def _extract_format_from_image(self, image: str, extraction_config: SchemaConfiguration) -> Dict[str, Any]:
+
+        return await tool_call_openai_model(
             client=self.client,
             content=[
                 {"type": "text", "text": "extract the relevant content using extractor_tool"},
                 {
                     "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"},
+                            "image_url": {"url": f"data:image/jpeg;base64,{image}"},
                 },
             ],
             extraction_config=extraction_config
         )
-
-    def convert_bytes_to_base64(self, image_bytes: bytes) -> str:
-        """converts image to base64"""
-        return base64.b64encode(image_bytes).decode('utf-8')
 
 
 async def tool_call_openai_model(client: AsyncClient,
@@ -125,12 +122,12 @@ async def tool_call_openai_model(client: AsyncClient,
             }
         ]
     )
-    if len(response.choice) == 0:
+    if len(response.choices) == 0:
         raise ValueError("there was no corrected json given")
-    if len(response.choice[0].message.tool_calls) == 0:
+    if len(response.choices[0].message.tool_calls) == 0:
         raise ValueError("there were no tool calls made")
-    if response.choice[0].message.tool_calls[0].function.name != extraction_config.name:
+    if response.choices[0].message.tool_calls[0].function.name != extraction_config.name:
         raise ValueError("tool use is incorrect")
     generated_json = json.loads(
-        response.choice[0].message.tool_calls[0].function.arguments)
+        response.choices[0].message.tool_calls[0].function.arguments)
     return generated_json

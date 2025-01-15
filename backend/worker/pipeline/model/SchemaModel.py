@@ -9,12 +9,12 @@ class SchemaTypePrimitive(StrEnum):
     primative of schema fields
     """
     STRING = "string"
-    INTEGER = "integer"
-    FLOAT = "float"
+    INTEGER = "number"
+    FLOAT = "number"
     BOOLEAN = "boolean"
     ARRAY_STRING = "array_string"
-    ARRAY_INT = "array_int"
-    ARRAY_FLOAT = "array_float"
+    ARRAY_INT = "array_number"
+    ARRAY_FLOAT = "array_number"
     ARRAY_BOOLEAN = "array_boolean"
 
 
@@ -25,7 +25,7 @@ class SchemaPropertyType(BaseModel):
     name: str
     description: str
     type: SchemaTypePrimitive
-    array_item_description: Optional[str] = None
+    array_item_description: Optional[str] = ""
 
 
 class SchemaConfiguration(BaseModel):
@@ -75,10 +75,12 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
                     "items": {
                         "type": "object",
                         "required": [field.name for field in config.schema],
-                        "properties": properties
+                        "properties": properties,
+                        "additionalProperties": False
                     }
                 }
-            }
+            },
+            "additionalProperties": False
         },
         "additionalProperties": False
     }

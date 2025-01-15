@@ -1,3 +1,4 @@
+import base64
 from io import BytesIO
 from PIL import Image
 from typing import List
@@ -20,18 +21,22 @@ class PDFToJPGStep(PipelineStep):
         incoming_pdf_file = FileOutputModel(
             **data.event
         )
-        images_bytes: List[bytes] = []
+        images_bytes: List[str] = []
         images: List[Image.Image] = convert_from_bytes(
             pdf_file=incoming_pdf_file.file_bytes)
         for image in images:
             with BytesIO() as output:
                 image.save(output, format="JPEG")
                 byte = output.getvalue()
-                images_bytes.append(byte)
+                images_bytes.append(self.convert_bytes_to_base64(byte))
         return StepData(
             event=PagesImageInputModel(
-                image_type="JPEG",
+                image_type="jpeg",
                 images=images_bytes
-            ),
+            ).model_dump(mode="json"),
             context=data.context
         )
+
+    def convert_bytes_to_base64(self, image_bytes: bytes) -> str:
+        """converts image to base64"""
+        return base64.b64encode(image_bytes).decode('utf-8')
