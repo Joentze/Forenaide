@@ -1,0 +1,2 @@
+numpy
+pymupdf==1.21.1
