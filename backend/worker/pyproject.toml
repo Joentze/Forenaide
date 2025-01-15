@@ -8,5 +8,6 @@ dependencies = [
     "anthropic>=0.43.0",
     "httpx>=0.28.1",
     "openai>=1.59.7",
+    "pdf2image>=1.17.0",
     "pydantic>=2.10.5",
 ]
