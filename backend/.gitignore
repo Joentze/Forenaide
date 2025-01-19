@@ -1,0 +1,14 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+# Environments
+.env
+.venv
+Include/*
+Lib/*
+Scripts/*
+pyvenv.cfg
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
