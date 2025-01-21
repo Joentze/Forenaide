@@ -15,7 +15,7 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
 # for accidental or malicious requests.
-max_rows = 1000
+max_rows = 250
 
 [api.tls]
 # Enable HTTPS endpoints locally using a self-signed certificate.
@@ -47,10 +47,10 @@ max_client_conn = 100
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+sql_paths = ["./seeds/*.sql"]
 
 [realtime]
-enabled = true
+enabled = false
 # Bind realtime via either IPv4 or IPv6. (default: IPv4)
 # ip_version = "IPv6"
 # The maximum length in bytes of HTTP request headers. (default: 4096)
@@ -93,8 +93,27 @@ file_size_limit = "50MiB"
 # allowed_mime_types = ["image/png", "image/jpeg"]
 # objects_path = "./images"
 
+[storage.buckets.sources]
+public = false
+file_size_limit = "50MiB"
+allowed_mime_types = [
+  "image/*",
+  "application/pdf",
+  "application/msword"
+]
+objects_path = "./seeds/sources"
+
+[storage.buckets.outputs]
+public = false
+file_size_limit = "10MiB"
+allowed_mime_types = [
+  "application/json",
+  "text/plain"
+]
+objects_path = "./seeds/outputs"
+
 [auth]
-enabled = true
+enabled = false
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
 site_url = "http://127.0.0.1:3000"
