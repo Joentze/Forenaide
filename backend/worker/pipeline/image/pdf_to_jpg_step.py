@@ -18,24 +18,24 @@ class PDFToJPGStep(PipelineStep):
         pass
 
     async def process(self, data: StepData) -> StepData:
-        incoming_pdf_file = FileOutputModel(
-            **data.event
-        )
+        incoming_pdf_file = {
+            **data["event"]
+        }
         images_bytes: List[str] = []
         images: List[Image.Image] = convert_from_bytes(
-            pdf_file=incoming_pdf_file.file_bytes)
+            pdf_file=incoming_pdf_file["file_bytes"])
         for image in images:
             with BytesIO() as output:
                 image.save(output, format="JPEG")
                 byte = output.getvalue()
                 images_bytes.append(self.convert_bytes_to_base64(byte))
-        return StepData(
-            event=PagesImageInputModel(
-                image_type="jpeg",
-                images=images_bytes
-            ).model_dump(mode="json"),
-            context=data.context
-        )
+        return {
+            "event": {
+                "image_type": "jpeg",
+                "images": images_bytes
+            },
+            "context": data["context"]
+        }
 
     def convert_bytes_to_base64(self, image_bytes: bytes) -> str:
         """converts image to base64"""

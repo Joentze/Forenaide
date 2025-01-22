@@ -1,8 +1,8 @@
 from typing import List
-from pydantic import BaseModel
+from typing import TypedDict
 
 
-class TextInputModel(BaseModel):
+class TextInputModel(TypedDict):
     """
     base model for text input extraction
     """

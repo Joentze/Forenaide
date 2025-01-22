@@ -10,4 +10,5 @@ dependencies = [
     "openai>=1.59.7",
     "pdf2image>=1.17.0",
     "pydantic>=2.10.5",
+    "pytesseract>=0.3.13",
 ]

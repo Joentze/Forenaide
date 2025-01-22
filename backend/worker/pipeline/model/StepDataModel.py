@@ -2,10 +2,10 @@
 base model for step data
 """
 from typing import Dict, Any
-from pydantic import BaseModel
+from typing import TypedDict
 
 
-class StepData(BaseModel):
+class StepData(TypedDict):
     """
     Base model for step data, which includes:
 

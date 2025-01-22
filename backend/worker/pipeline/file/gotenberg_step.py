@@ -1,25 +1,26 @@
 """base class gotenberg file handler"""
-from typing import Dict, Tuple
-from pydantic import BaseModel
+from typing import Dict, Tuple, TypedDict
 from pipeline.model.StepDataModel import StepData
 from pipeline.base import PipelineStep
 from httpx import AsyncClient, AsyncHTTPTransport
 
 
-class FileInputModel(BaseModel):
+class FileInputModel(TypedDict):
     """
     base model for file inputs
     """
     filename: str
     mimetype: str
-    file_bytes: bytes
+    # encoded file_bytes
+    file_bytes: str
 
 
-class FileOutputModel(BaseModel):
+class FileOutputModel(TypedDict):
     """
     base model for pdf converted file
     """
     filename: str
+    # encoded file_bytes
     file_bytes: bytes
 
 
@@ -185,16 +186,18 @@ class GotenbergPipelineStep(PipelineStep):
         """
         converts incoming file into pdf bytes
         """
-        file_data: FileInputModel = FileInputModel(
-            **data.event
-        )
+        file_data: FileInputModel = {
+            **data["event"]
+        }
         pdf_bytes = await self.convert_to_pdf(file=file_data)
-        return StepData(
-            event=FileOutputModel(
-                filename=file_data.filename,
-                file_bytes=pdf_bytes
-            ).model_dump(mode="json"),
-            context=data.context)
+
+        return {
+            "event": {
+                "filename": file_data["filename"],
+                "file_bytes": pdf_bytes
+            },
+            "context": data["context"]
+        }
 
     async def convert_to_pdf(self, file: FileInputModel) -> bytes:
         """
@@ -202,7 +205,7 @@ class GotenbergPipelineStep(PipelineStep):
         """
         gotenberg_path = None
         for mimetypes, path in MIMETYPES.items():
-            if file.mimetype in mimetypes:
+            if file["mimetype"] in mimetypes:
                 gotenberg_path = path
                 break
         if gotenberg_path is None:
@@ -210,7 +213,7 @@ class GotenbergPipelineStep(PipelineStep):
         response = await self.client.post(
             url=gotenberg_path,
             files={
-                "files": (file.filename, file.file_bytes, file.mimetype)
+                "files": (file["filename"], file["file_bytes"], file["mimetype"])
             },
             timeout=10000
         )

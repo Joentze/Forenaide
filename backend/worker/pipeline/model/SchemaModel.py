@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from typing import TypedDict
 
 
 class SchemaTypePrimitive(StrEnum):
@@ -18,7 +18,7 @@ class SchemaTypePrimitive(StrEnum):
     ARRAY_BOOLEAN = "array_boolean"
 
 
-class SchemaPropertyType(BaseModel):
+class SchemaPropertyType(TypedDict):
     """
     types
     """
@@ -28,7 +28,7 @@ class SchemaPropertyType(BaseModel):
     array_item_description: Optional[str] = ""
 
 
-class SchemaConfiguration(BaseModel):
+class SchemaConfiguration(TypedDict):
     """
     configuration of fields to extract
     """
@@ -42,26 +42,26 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
     creates tool calling schema for properties from schema
     """
     properties = {}
-    for field in config.schema:
-        field_type = field.type.value
+    for field in config["schema"]:
+        field_type = field["type"]
         if field_type.startswith("array"):
             item_type = field_type.split("_")[1]
-            properties[field.name] = {
+            properties[field["name"]] = {
                 "type": "array",
-                "description": field.description,
+                "description": field["description"],
                 "items": {
                     "type": item_type,
-                    "description": field.array_item_description or f"An item of type {item_type}"
+                    "description": field["array_item_description"] or f"An item of type {item_type}"
                 }
             }
         else:
-            properties[field.name] = {
+            properties[field["name"]] = {
                 "type": field_type,
-                "description": field.description
+                "description": field["description"]
             }
     return {
-        "name": config.name,
-        "description": config.description,
+        "name": config["name"],
+        "description": config["description"],
         "strict": True,
         "parameters": {
             "type": "object",
@@ -74,7 +74,7 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
                     "description": "Array of objects to be generated",
                     "items": {
                         "type": "object",
-                        "required": [field.name for field in config.schema],
+                        "required": [field["name"] for field in config["schema"]],
                         "properties": properties,
                         "additionalProperties": False
                     }

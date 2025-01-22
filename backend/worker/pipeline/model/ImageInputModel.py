@@ -1,8 +1,7 @@
 """
 models for transferring images
 """
-from typing import List
-from pydantic import BaseModel
+from typing import List, TypedDict
 from enum import Enum
 
 
@@ -16,10 +15,9 @@ class ImageType(str, Enum):
     WEBP = "webp"
 
 
-class PagesImageInputModel(BaseModel):
+class PagesImageInputModel(TypedDict):
     """
     base model for page input model, one image per page
     """
     image_type: ImageType = ImageType.JPG
-    # base64 encoded
-    images: List[str]
+    images: List[bytes]
