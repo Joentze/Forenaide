@@ -113,7 +113,7 @@ allowed_mime_types = [
 objects_path = "./seeds/outputs"
 
 [auth]
-enabled = false
+enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
 site_url = "http://127.0.0.1:3000"
