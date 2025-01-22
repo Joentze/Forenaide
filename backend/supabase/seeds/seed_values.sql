@@ -1,42 +1,20 @@
-insert into data_sources (uri, format) values
-('http://example.com/data/source1.csv', 'csv'),
-('http://example.com/data/source2.json', 'json'),
-('http://example.com/data/source3.xml', 'xml'),
-('http://example.com/data/source4.csv', 'csv'),
-('http://example.com/data/source5.json', 'json');
+INSERT INTO templates (id, name, schema, description, created_at) VALUES
+    ('bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8', 'Template A', '{"fields": [{"name": "field1", "type": "string"}, {"name": "field2", "type": "integer"}]}', 'Description for Template A', current_timestamp),
+    ('c4a8f4c1-3e8d-41a7-94dc-3c645d1f1c34', 'Template B', '{"fields": [{"name": "field1", "type": "boolean"}, {"name": "field2", "type": "float"}]}', 'Description for Template B', current_timestamp);
 
-insert into templates (name, description) values
-('template a', 'template for processing csv files'),
-('template b', 'template for processing json files'),
-('template c', 'template for processing xml files'),
-('template d', 'general purpose template'),
-('template e', 'specialized template for large datasets');
+INSERT INTO strategies (id, strategy) VALUES
+    ('15f2a8c5-72bf-4c08-84c8-252b576ad144', 'Strategy X'),
+    ('a83c8e7b-b314-4a2e-906c-2e43f7882c9d', 'Strategy Y');
 
-insert into fields (template_id, name, data_type, description) values
-(1, 'field1', 'string', 'a string field for template a'),
-(1, 'field2', 'integer', 'an integer field for template a'),
-(2, 'field1', 'string', 'a string field for template b'),
-(2, 'field3', 'boolean', 'a boolean field for template b'),
-(3, 'field1', 'date', 'a date field for template c'),
-(3, 'field4', 'float', 'a float field for template c'),
-(4, 'field1', 'string', 'a generic string field'),
-(4, 'field5', 'json', 'a json field for template d'),
-(5, 'field1', 'text', 'a text field for template e'),
-(5, 'field6', 'double', 'a double field for template e');
+INSERT INTO pipeline_runs (id, strategy_id, schema, status, started_at, completed_at) VALUES
+    ('21c0eeda-f64f-40c2-8728-b8d62d6b9b63', '15f2a8c5-72bf-4c08-84c8-252b576ad144', '{"fields": [{"name": "field1", "type": "string"}, {"name": "field2", "type": "integer"}]}', 'completed', current_timestamp - interval '1 hour', current_timestamp),
+    ('3642fbc9-e3b1-41d3-bde8-6c6d521f75d7', 'a83c8e7b-b314-4a2e-906c-2e43f7882c9d', '{"fields": [{"name": "field1", "type": "string"}, {"name": "field2", "type": "integer"}]}', 'running', current_timestamp - interval '30 minutes', current_timestamp);
 
-insert into pipeline_runs (template_id, data_source_id) values
-(1, 1),
-(1, 4),
-(2, 2),
-(3, 3),
-(4, 1),
-(5, 5);
+INSERT INTO data_sources (id, uri, format, run_id) VALUES
+    ('e784ff29-6d11-4b6f-9b3d-8d8a8e1e2f17', 'https://example.com/data1.json', 'JSON', '21c0eeda-f64f-40c2-8728-b8d62d6b9b63'),
+    ('3b4db45f-3628-4a76-b5b3-6eeb5c6c3ed6', 'https://example.com/data2.csv', 'CSV', '3642fbc9-e3b1-41d3-bde8-6c6d521f75d7');
 
-insert into outputs (run_id, uri) values
-(1, 'http://example.com/outputs/run1/output1.csv'),
-(1, 'http://example.com/outputs/run1/output2.csv'),
-(2, 'http://example.com/outputs/run2/output1.json'),
-(3, 'http://example.com/outputs/run3/output1.xml'),
-(4, 'http://example.com/outputs/run4/output1.csv'),
-(5, 'http://example.com/outputs/run5/output1.json');
+INSERT INTO outputs (id, run_id, uri) VALUES
+    ('b09f6532-cd8d-4c19-a8cf-3a8c762e5264', '21c0eeda-f64f-40c2-8728-b8d62d6b9b63', 'https://example.com/output1.json'),
+    ('5de8f8f1-9e45-45f7-a6f2-7f8a3d9d6c7d', '3642fbc9-e3b1-41d3-bde8-6c6d521f75d7', 'https://example.com/output2.json');
 

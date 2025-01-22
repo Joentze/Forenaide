@@ -1,38 +1,37 @@
-create table data_sources (
-    data_source_id serial primary key,
-    uri varchar(255) not null,
-    format varchar(50) not null
-);
-
 create table templates (
-    template_id serial primary key,
+    id uuid primary key,
     name varchar(100) not null,
+    schema json not null,
     description text,
     created_at timestamp default current_timestamp not null
 );
 
-create table fields (
-    field_id serial primary key,
-    template_id serial not null,
-    name varchar(100) not null,
-    data_type varchar(50) not null,
-    description text,
-    foreign key (template_id) references templates(template_id)
+create table strategies (
+    id uuid primary key,
+    strategy varchar(255) not null
 );
 
 create table pipeline_runs (
-    run_id serial primary key,
-    template_id serial not null,
-    data_source_id serial not null,
-    created_at timestamp default current_timestamp not null,
-    foreign key (template_id) references templates(template_id),
-    foreign key (data_source_id) references data_sources(data_source_id)
+    id uuid primary key,
+    strategy_id uuid not null,
+    schema json not null,
+    status varchar(255) not null,
+    started_at timestamp default current_timestamp not null,
+    completed_at timestamp default current_timestamp not null,
+    foreign key (strategy_id) references strategies(id)
+);
+
+create table data_sources (
+    id uuid primary key,
+    uri varchar(255) not null,
+    format varchar(50) not null,
+    run_id uuid not null,
+    foreign key (run_id) references pipeline_runs(id)
 );
 
 create table outputs (
-    output_id serial primary key,
-    run_id serial not null,
+    id uuid primary key,
+    run_id uuid not null,
     uri varchar(255) not null,
-    foreign key (run_id) references pipeline_runs(run_id)
+    foreign key (run_id) references pipeline_runs(id)
 );
-
