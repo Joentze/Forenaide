@@ -51,6 +51,7 @@ class QueueMessageModel(BaseModel):
     """
     base model for incoming queue message
     """
+    strategy_name: str
     run_id: str
     files: List[SourceFileModel]
     schema: SchemaConfiguration

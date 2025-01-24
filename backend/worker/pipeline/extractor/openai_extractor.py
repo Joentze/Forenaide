@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import json
 from typing import Any, Dict, List, Optional
 from pipeline.model.TextInputModel import TextInputModel

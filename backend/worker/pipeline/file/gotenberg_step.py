@@ -37,10 +37,7 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/x-t602",
         "application/x-abiword",
         "text/x-bibtex",
-        "image/bmp",
         "application/vnd.corel-draw",
-        "image/cgm",
-        "image/x-cmx",
         "text/csv",
         "application/x-cwk",
         "application/x-dbf",
@@ -51,7 +48,6 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/msword",
         "application/vnd.ms-word.template.macroenabled.12",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
-        "image/vnd.dxf",
         "application/x-emf",
         "application/postscript",
         "application/epub+zip",
@@ -60,9 +56,7 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.oasis.opendocument.spreadsheet-flat-xml",
         "application/vnd.oasis.opendocument.text-flat-xml",
         "application/x-font-opendyslexic",
-        "image/gif",
         "application/x-hwp",
-        "image/jpeg",
         "application/vnd.apple.keynote",
         "application/x-latex",
         "application/vnd.lotus-wordpro",
@@ -83,28 +77,19 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.oasis.opendocument.spreadsheet-template",
         "application/vnd.oasis.opendocument.text-template",
         "application/vnd.apple.pages",
-        "image/x-portable-bitmap",
-        "image/x-photo-cd",
-        "image/x-pict",
-        "image/x-pcx",
         "application/vnd.palm",
         "application/pdf",
-        "image/x-portable-graymap",
-        "image/png",
         "application/vnd.ms-powerpoint",
         "application/vnd.ms-powerpoint.template.macroenabled.12",
         "application/vnd.openxmlformats-officedocument.presentationml.template",
-        "image/x-portable-pixmap",
         "application/vnd.ms-powerpoint",
         "application/vnd.ms-powerpoint",
         "application/vnd.ms-powerpoint.presentation.macroenabled.12",
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "image/vnd.adobe.photoshop",
         "application/x-powersoftreport",
         "application/x-mspublisher",
         "application/x-pwp",
         "application/vnd.ms-pocketword",
-        "image/x-cmu-raster",
         "application/rtf",
         "application/vnd.stardivision.draw",
         "application/vnd.stardivision.calc",
@@ -118,7 +103,6 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.sun.xml.draw.template",
         "application/vnd.sun.xml.impress.template",
         "application/vnd.sun.xml.writer.template",
-        "image/svg+xml",
         "application/vnd.stardivision.math",
         "application/x-shockwave-flash",
         "application/vnd.sun.xml.calc",
@@ -127,9 +111,6 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.sun.xml.impress",
         "application/vnd.sun.xml.math",
         "application/vnd.sun.xml.writer",
-        "image/x-tga",
-        "image/tiff",
-        "image/tiff",
         "text/plain",
         "application/x-uof",
         "application/vnd.oasis.opendocument.presentation",
@@ -147,7 +128,6 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.wordperfect",
         "application/x-wpg",
         "application/vnd.ms-works",
-        "image/x-xbitmap",
         "application/xhtml+xml",
         "application/vnd.ms-excel",
         "application/vnd.ms-excel.sheet.binary.macroenabled.12",
@@ -158,7 +138,6 @@ MIMETYPES: Dict[Tuple[str], str] = {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
         "application/vnd.ms-excel",
         "application/xml",
-        "image/x-xpixmap",
         "application/x-abiword"
     ): "/libreoffice/convert"
 
@@ -210,10 +189,16 @@ class GotenbergPipelineStep(PipelineStep):
                 break
         if gotenberg_path is None:
             raise ValueError("file(s) mimetype is not available")
+
+        if file["mimetype"] == "text/html":
+            filename = "index.html"
+        else:
+            filename = file["filename"]
+
         response = await self.client.post(
             url=gotenberg_path,
             files={
-                "files": (file["filename"], file["file_bytes"], file["mimetype"])
+                "files": (filename, file["file_bytes"], file["mimetype"])
             },
             timeout=10000
         )
