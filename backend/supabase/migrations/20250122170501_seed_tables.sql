@@ -28,7 +28,8 @@ create table pipeline_runs (
 create table data_sources (
     id uuid primary key,
     uri varchar(255) not null,
-    format varchar(50) not null
+    mimetype varchar(50) not null,
+    filename varchar(255) not null
 );
 
 create table sources_pipeline (
