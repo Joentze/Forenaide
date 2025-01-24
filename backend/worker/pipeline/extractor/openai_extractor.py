@@ -1,7 +1,7 @@
 import asyncio
 import base64
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from pipeline.model.TextInputModel import TextInputModel
 from pipeline.model.SchemaModel import SchemaConfiguration, generate_tool_schema_json
 from pipeline import PipelineStep
@@ -14,8 +14,13 @@ class OpenAIExtractor(PipelineStep):
     base class for open ai text to format extractor
     """
 
-    def __init__(self) -> None:
-        self.client = AsyncClient()
+    def __init__(self, client: Optional[AsyncClient] = None, model: str = "gpt-4o-mini") -> None:
+        if client:
+            self.client = client
+        else:
+            self.client = AsyncClient()
+
+        self.model = model
 
     async def process(self, data: StepData) -> StepData:
         texts_data = data["event"]
@@ -43,7 +48,8 @@ class OpenAIExtractor(PipelineStep):
         return await tool_call_openai_model(
             client=self.client,
             content=text,
-            extraction_config=extraction_config
+            extraction_config=extraction_config,
+            model=self.model
         )
 
 
@@ -97,13 +103,15 @@ class OpenAIImageExtractor(PipelineStep):
 
 async def tool_call_openai_model(client: AsyncClient,
                                  content: str | List[Dict[str, Any]],
-                                 extraction_config: SchemaConfiguration) -> Dict[str, Any]:
+                                 extraction_config: SchemaConfiguration,
+                                 model: str = "gpt-4o-mini"
+                                 ) -> Dict[str, Any]:
     """
     extracts defined fields
     """
     response = await client.chat.completions.create(
         temperature=0,
-        model="gpt-4o-mini",
+        model=model,
         tools=[
             {
                 "type": "function",
