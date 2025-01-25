@@ -22,3 +22,10 @@ We are using FastAPI to build out our APIs.
 
 - Run the FastAPI server with `fastapi dev api/app.py`
 - Go to `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8000/redoc` for the docs.
+
+## Environments
+- You can use `requirements.txt` within `backend/setup` to configure a new environment for this project
+- With conda, run `conda create --name <env> --file <this file>` 
+- Run `conda activate <env>` to swap environments
+- `setup_env.sh` can be used to initialise supabase + fastapi together. It takes necessary secret values and stores them `.env` file (i made it cos im lazy)
+
