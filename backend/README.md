@@ -27,5 +27,6 @@ We are using FastAPI to build out our APIs.
 - You can use `requirements.txt` within `backend/setup` to configure a new environment for this project
 - With conda, run `conda create --name <env> --file <this file>` 
 - Run `conda activate <env>` to swap environments
-- `setup_env.sh` can be used to initialise supabase + fastapi together. It takes necessary secret values and stores them `.env` file (i made it cos im lazy)
+- `setup_env.sh` can be used to initialise supabase + fastapi together. It takes necessary secret values and stores them `.env` file
+- run `./setup/setup_env.sh` from the `backend` directory 
 
