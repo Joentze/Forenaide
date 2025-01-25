@@ -9,42 +9,38 @@ parser = argparse.ArgumentParser(
   epilog="Hello"
 )
 
-parser.add_argument("gt_filename")
+parser.add_argument("gtruth_filename")
 parser.add_argument("pred_filename")
 
 def main():
   # read from two command line args: ground truth and predicted
   args = parser.parse_args()
 
-  gt_filename, pred_filename = args.gt_filename, args.pred_filename
-
-  if is_csv(gt_filename) and is_csv(pred_filename):
-    gt = pd.read_csv(gt_filename).to_html(index=False)
-    pred = pd.read_csv(pred_filename).to_html(index=False)
-
-  else:
-    gt, pred = html_files_to_strings(gt_filename, pred_filename)
+  gtruth_filename, pred_filename = args.gtruth_filename, args.pred_filename
+  gtruth, pred = to_html(gtruth_filename), to_html(pred_filename)
 
   # print metrics
-  print(grits_from_html(gt, pred))
+  print(grits_from_html(gtruth, pred))
 
-def is_csv(filename: str) -> bool:
-  return filename.split(".")[1] == "csv"
+def to_html(filename: str) -> str:
+  """
+  Returns a html string when called on the filename again
+  """
+  extension = filename.split(".")[1]
+  readers = {
+    "csv": lambda filename: pd.read_csv(filename).to_html(index=False),
+    "html": html_files_to_string,
+    "xlsx": lambda filename: pd.read_excel(filename).to_html(index=False)
+  }
 
+  return readers[extension](filename)
 
-def html_files_to_strings(a: str, b: str) -> Tuple[str, str]:
+def html_files_to_string(filename: str) -> str:
   """
   Takes in the filename of two html files and returns their html content as string thunks
   """
-
-  with open(a, "r") as f:
-    out_a = f.read()
-
-  with open(b, "r") as f:
-    out_b = f.read()
-
-  return out_a, out_b
-
+  with open(filename, "r", encoding="utf-8") as f:
+    return f.read()
 
 
 if __name__ == "__main__":
