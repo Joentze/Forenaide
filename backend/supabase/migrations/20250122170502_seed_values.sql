@@ -14,9 +14,9 @@ INSERT INTO pipeline_runs (id, name, description, strategy_id, schema, status, s
     ('3642fbc9-e3b1-41d3-bde8-6c6d521f75d7', 'Pipeline Run B', 'Description for Pipeline Run B', 'a83c8e7b-b314-4a2e-906c-2e43f7882c9d', '{"config": {"key": "value2"}}', 'running', current_timestamp - interval '30 minutes', current_timestamp);
 
 -- Insert mock data for data_sources
-INSERT INTO data_sources (id, uri, format) VALUES
-    ('e784ff29-6d11-4b6f-9b3d-8d8a8e1e2f17', 'https://example.com/data1.json', 'JSON'),
-    ('3b4db45f-3628-4a76-b5b3-6eeb5c6c3ed6', 'https://example.com/data2.csv', 'CSV');
+INSERT INTO data_sources (id, uri, mimetype, filename) VALUES
+    ('e784ff29-6d11-4b6f-9b3d-8d8a8e1e2f17', 'https://example.com/data1.json', 'JSON','data1.json'),
+    ('3b4db45f-3628-4a76-b5b3-6eeb5c6c3ed6', 'https://example.com/data2.csv', 'CSV','data2.csv');
 
 -- Insert mock data for sources_pipeline
 INSERT INTO sources_pipeline (id, pipeline_id, source_id) VALUES
