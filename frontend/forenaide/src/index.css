@@ -117,3 +117,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-600 transition-all;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-600 transition-all;
+  }
+
+  .card {
+    @apply bg-white shadow-md rounded-lg p-6;
+  }
+
+  .card-header {
+    @apply border-b pb-4 mb-4;
+  }
+
+  .card-title {
+    @apply text-xl font-bold;
+  }
+
+  .card-content {
+    @apply text-gray-700;
+  }
+}
