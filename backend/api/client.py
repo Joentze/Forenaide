@@ -1,10 +1,16 @@
-import dotenv
+from pydantic_settings import BaseSettings
 from supabase import create_client, Client
 
-env = dotenv.dotenv_values()
 
-url: str = env.get("SUPABASE_URL", False)
-key: str = env.get("SUPABASE_KEY", False)
+class Environ(BaseSettings):
+    supabase_url: str = None
+    supabase_key: str = None
+
+
+environ = Environ()
+
+url: str = environ.supabase_url
+key: str = environ.supabase_key
 
 # Raise error if URL or Key is missing
 if not url or not key:
