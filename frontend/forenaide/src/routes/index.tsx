@@ -46,7 +46,7 @@ function HomeComponent() {
 									<TabsTrigger value="log">Activity Log</TabsTrigger>
 									<TabsTrigger value="queue">Processing Queue</TabsTrigger>
 								</TabsList>
-								<Button onClick={() => navigate("/pipeline")}>
+								<Button onClick={() => navigate({ to: "/pipeline" })}>
 									<Plus />
 									New Run
 								</Button>
