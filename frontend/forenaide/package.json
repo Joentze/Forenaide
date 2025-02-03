@@ -1,0 +1,43 @@
+{
+  "name": "forenaide",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "dev": "vite --port=3001",
+    "build": "vite build",
+    "serve": "vite preview",
+    "start": "vite"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.97.0",
+    "@types/node": "^22.10.6",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.3"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.5",
+    "@radix-ui/react-menubar": "^1.1.5",
+    "@radix-ui/react-progress": "^1.1.1",
+    "@radix-ui/react-separator": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-tabs": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.7",
+    "@tanstack/react-router": "^1.97.0",
+    "@tanstack/router-devtools": "^1.97.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.471.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.5",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
