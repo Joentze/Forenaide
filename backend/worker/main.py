@@ -138,7 +138,7 @@ if __name__ == "__main__":
     # )
     # pprint(response["event"]["rows"])
 
-    response_docx = asyncio.run(file_to_pdf_to_jpeg_to_text_to_row_openai(
+    response_docx = asyncio.run(file_to_pdf_to_jpeg_to_image_to_row_openai(
         input_step=StepData(
             event={
                 "filename": "test.docx",
