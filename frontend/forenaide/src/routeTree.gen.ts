@@ -11,18 +11,11 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as PipelineImport } from './routes/pipeline'
 import { Route as ConfigImport } from './routes/config'
 import { Route as IndexImport } from './routes/index'
-import { Route as UploadIndexImport } from './routes/upload/index'
+import { Route as RunNewImport } from './routes/run/new'
 
 // Create/Update Routes
-
-const PipelineRoute = PipelineImport.update({
-  id: '/pipeline',
-  path: '/pipeline',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const ConfigRoute = ConfigImport.update({
   id: '/config',
@@ -36,9 +29,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const UploadIndexRoute = UploadIndexImport.update({
-  id: '/upload/',
-  path: '/upload/',
+const RunNewRoute = RunNewImport.update({
+  id: '/run/new',
+  path: '/run/new',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,18 +53,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfigImport
       parentRoute: typeof rootRoute
     }
-    '/pipeline': {
-      id: '/pipeline'
-      path: '/pipeline'
-      fullPath: '/pipeline'
-      preLoaderRoute: typeof PipelineImport
-      parentRoute: typeof rootRoute
-    }
-    '/upload/': {
-      id: '/upload/'
-      path: '/upload'
-      fullPath: '/upload'
-      preLoaderRoute: typeof UploadIndexImport
+    '/run/new': {
+      id: '/run/new'
+      path: '/run/new'
+      fullPath: '/run/new'
+      preLoaderRoute: typeof RunNewImport
       parentRoute: typeof rootRoute
     }
   }
@@ -82,46 +68,41 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/config': typeof ConfigRoute
-  '/pipeline': typeof PipelineRoute
-  '/upload': typeof UploadIndexRoute
+  '/run/new': typeof RunNewRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/config': typeof ConfigRoute
-  '/pipeline': typeof PipelineRoute
-  '/upload': typeof UploadIndexRoute
+  '/run/new': typeof RunNewRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/config': typeof ConfigRoute
-  '/pipeline': typeof PipelineRoute
-  '/upload/': typeof UploadIndexRoute
+  '/run/new': typeof RunNewRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/config' | '/pipeline' | '/upload'
+  fullPaths: '/' | '/config' | '/run/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/config' | '/pipeline' | '/upload'
-  id: '__root__' | '/' | '/config' | '/pipeline' | '/upload/'
+  to: '/' | '/config' | '/run/new'
+  id: '__root__' | '/' | '/config' | '/run/new'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfigRoute: typeof ConfigRoute
-  PipelineRoute: typeof PipelineRoute
-  UploadIndexRoute: typeof UploadIndexRoute
+  RunNewRoute: typeof RunNewRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfigRoute: ConfigRoute,
-  PipelineRoute: PipelineRoute,
-  UploadIndexRoute: UploadIndexRoute,
+  RunNewRoute: RunNewRoute,
 }
 
 export const routeTree = rootRoute
@@ -136,8 +117,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/config",
-        "/pipeline",
-        "/upload/"
+        "/run/new"
       ]
     },
     "/": {
@@ -146,11 +126,8 @@ export const routeTree = rootRoute
     "/config": {
       "filePath": "config.tsx"
     },
-    "/pipeline": {
-      "filePath": "pipeline.tsx"
-    },
-    "/upload/": {
-      "filePath": "upload/index.tsx"
+    "/run/new": {
+      "filePath": "run/new.tsx"
     }
   }
 }
