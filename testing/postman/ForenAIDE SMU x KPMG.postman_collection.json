@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "3870ebb6-eb63-45c9-8d74-58ef39fb1ceb",
+		"name": "ForenAIDE SMU x KPMG",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "29186472"
+	},
+	"item": [
+		{
+			"name": "template",
+			"item": [
+				{
+					"name": "templates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://127.0.0.1:8000/templates"
+					},
+					"response": []
+				},
+				{
+					"name": "templates/{template_id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://127.0.0.1:8000/templates/bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8"
+					},
+					"response": []
+				},
+				{
+					"name": "templates",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Template C\",\n    \"description\": \"Description for Template C\",\n    \"schema\": {\n        \"fields\": [\n            {\n                \"name\": \"field1\",\n                \"type\": \"string\"\n            },\n            {\n                \"name\": \"field2\",\n                \"type\": \"integer\"\n            }\n        ]\n    },\n    \"id\": \"bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8\",\n    \"created_at\": \"2024-01-25T04:31:02.680409\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://127.0.0.1:8000/templates"
+					},
+					"response": []
+				},
+				{
+					"name": "templates/{template_id}",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Template C\",\n    \"description\": \"Description for Template C\",\n    \"schema\": {\n        \"fields\": [\n            {\n                \"name\": \"field1\",\n                \"type\": \"string\"\n            },\n            {\n                \"name\": \"field2\",\n                \"type\": \"boolean\"\n            },\n            {\n                \"name\": \"field3\",\n                \"type\": \"float\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://127.0.0.1:8000/templates/a190df33-9389-4660-872b-e469f0dc856a"
+					},
+					"response": []
+				},
+				{
+					"name": "templates/{template_id}",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://127.0.0.1:8000/templates/<template_id>"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Files",
+			"item": [
+				{
+					"name": "Upload Source",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/basil/Downloads/2024-10-23 16.34.11.jpg"
+								}
+							]
+						},
+						"url": "http://127.0.0.1:8000/data_sources/upload"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Output",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/basil/Downloads/new.json"
+								}
+							]
+						},
+						"url": "http://127.0.0.1:8000/outputs/upload"
+					},
+					"response": []
+				},
+				{
+					"name": "Download Source",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://127.0.0.1:8000/data_sources/download/2024-10-23 16.34.11.jpg"
+					},
+					"response": []
+				},
+				{
+					"name": "Download Output",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://127.0.0.1:8000/outputs/download/new.json"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
