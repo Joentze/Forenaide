@@ -19,10 +19,8 @@
 
 ## FastAPI
 
-We are using FastAPI to build out our APIs.
-
 - Run the FastAPI server with `fastapi dev api/app.py`
-- Go to `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8000/redoc` for the docs.
+- Go to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) or [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc) for the docs.
 
 ## Environments
 
@@ -30,9 +28,9 @@ We are using FastAPI to build out our APIs.
 - With conda, run `conda create --name <env> --file <this file>`
 - Run `conda activate <env>` to swap environments
 
-## Bootstrapping
+## Helper Scripts
 
-We've provided helper scripts to help bootstrap all aforementioned setup, making it easier to run setup and run Supabase and FastAPI via 1 script
+We've provided helper scripts to help bootstrap all aforementioned setup, making it easier to setup and run both Supabase and FastAPI via a single script
 
 ### MacOS
 
