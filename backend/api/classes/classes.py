@@ -1,16 +1,16 @@
 """
 base models of pipeline, templates
 """
+from uuid import UUID
+from typing import Any, Dict, Optional, List
 from enum import StrEnum
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Optional, List
-from uuid import UUID
-from datetime import datetime
-
-# Templates
 
 
 class PipelineStatus(StrEnum):
+    """
+    pipeline status enum
+    """
     NOT_STARTED = "not_started"
     PROCESSING = "processing"
     FAILED = "failed"
@@ -18,40 +18,30 @@ class PipelineStatus(StrEnum):
     COMPLETED = "completed"
 
 
-class TemplateBase(BaseModel):
+class CreateTemplate(BaseModel):
+    """
+    base model create template
+    """
     name: str
-    description: Optional[str] = None
-    extraction_schema: dict
+    description: str
+    extraction_schema: Dict[str, Any]
 
 
-class TemplateResponse(TemplateBase):
+class UpdateTemplate(BaseModel):
+    """
+    base model for updating template
+    """
+    name: str
+    description: str
+    extraction_schema: Dict[str, Any]
+
+
+class TemplateResponse(CreateTemplate):
+    """
+    base model of template response
+    """
     id: UUID
     created_at: str
-
-# Pipeline Runs
-
-
-# class PipelineRunBase(BaseModel):
-#     name: str
-#     description: Optional[str] = None
-#     strategy_id: UUID
-#     extraction_schema: dict
-#     status: Optional[str] = None
-#     file_uris: List[str] = []
-
-
-# class PipelineRunResponse(PipelineRunBase):
-#     id: UUID
-#     started_at: datetime
-#     completed_at: datetime
-
-
-# class PipelineRunUpdate(BaseModel):
-#     name: Optional[str] = None
-#     description: Optional[str] = None
-#     strategy_id: Optional[UUID] = None
-#     extraction_schema: Optional[dict] = None
-#     status: Optional[str] = None
 
 
 # ========

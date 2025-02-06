@@ -1,7 +1,7 @@
 create table templates (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     name varchar(100) not null,
-    description text,
+    description text not null,
     extraction_schema json not null,
     created_at timestamp default current_timestamp not null
 );
