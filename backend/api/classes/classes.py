@@ -65,7 +65,7 @@ class CreatePipelineRun(BaseModel):
     file_uris: List[str] = Field(..., min_items=1)
 
 
-class PipelineResponse(BaseModel):
+class PipelineRunResponse(BaseModel):
     """
     base model for pipeline response
     """
