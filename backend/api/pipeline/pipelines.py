@@ -27,7 +27,7 @@ async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: PipelineRunBase
         "name": pipeline_run.name,
         "description": pipeline_run.description,
         "strategy_id": str(pipeline_run.strategy_id),
-        "schema": pipeline_run.schema,
+        "extraction_schema": pipeline_run.extraction_schema,
         "status": "In progress",
         "started_at": started_at.isoformat(),
         "completed_at": completed_at.isoformat()
@@ -54,7 +54,7 @@ async def update_pipeline_run(supabase: SBaseDeps, pipeline_id: UUID, pipeline_r
         "name": pipeline_run.name,
         "description": pipeline_run.description,
         "strategy_id": str(pipeline_run.strategy_id),
-        "schema": pipeline_run.schema,
+        "schema": pipeline_run.extraction_schema,
         "status": pipeline_run.status
     }
     await supabase.table("pipeline_runs").update(data).eq("id", str(pipeline_id)).execute()

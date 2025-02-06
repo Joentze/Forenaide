@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Generic, TypeVar
+from typing import Optional, Generic, TypeVar, Any
 from uuid import UUID
 from datetime import datetime
 
@@ -7,7 +7,7 @@ from datetime import datetime
 class TemplateBase(BaseModel):
     name: str
     description: Optional[str] = None
-    schema: dict
+    extraction_schema: dict
 
 class TemplateResponse(TemplateBase):
     id: UUID
@@ -18,7 +18,7 @@ class PipelineRunBase(BaseModel):
     name: str
     description: Optional[str] = None
     strategy_id: UUID
-    schema: dict
+    extraction_schema: dict
     status: Optional[str] = None
 
 class PipelineRunResponse(PipelineRunBase):
@@ -30,5 +30,5 @@ class PipelineRunUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     strategy_id: Optional[UUID] = None
-    schema: Optional[dict] = None
+    extraction_schema: Optional[dict] = None
     status: Optional[str] = None
