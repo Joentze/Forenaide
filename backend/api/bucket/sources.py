@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from client import supabase
+from deps import SBaseDeps
 import dotenv
 
 router = APIRouter(prefix="/data_sources", tags=["Data Sources"])
 supabase_url = dotenv.dotenv_values().get("SUPABASE_URL", "")
 
 @router.post("/upload")
-async def upload_file_to_data_source(file: UploadFile = File(...)):
+async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = File(...)):
     try:
         bucket_name = "sources"
         file_content = await file.read()
         file_path = file.filename
 
-        response = supabase.storage.from_(bucket_name).upload(
+        response = await supabase.storage.from_(bucket_name).upload(
             file_path,
             file_content,
             {"content-type": file.content_type}
