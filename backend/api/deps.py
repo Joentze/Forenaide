@@ -2,7 +2,6 @@ import asyncio
 import functools
 from typing import Annotated
 from fastapi import Depends
-from gotrue._async.gotrue_base_api import Callable
 from pydantic_settings import BaseSettings
 from supabase import create_async_client, AsyncClient
 import dotenv
@@ -26,8 +25,9 @@ if not url or not key:
 
 # bound_async_client = functools.partial(create_async_client, url, key)
 
+
 async def provide_client():
-  return await create_async_client(url, key)
+    return await create_async_client(url, key)
 
 
 SBaseDeps = Annotated[AsyncClient, Depends(provide_client)]

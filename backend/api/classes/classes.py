@@ -62,7 +62,7 @@ class CreatePipelineRun(BaseModel):
     strategy_id: UUID
     extraction_schema: Dict[str, Any]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
-    file_uris: List[str] = Field(..., min_items=1)
+    file_uris: List[str] = Field(..., min_length=1)
 
 
 class PipelineRunResponse(BaseModel):

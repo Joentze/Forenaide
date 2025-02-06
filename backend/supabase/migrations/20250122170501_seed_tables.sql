@@ -22,6 +22,7 @@ create table pipeline_runs (
     status varchar(255) not null,
     started_at timestamp default current_timestamp not null,
     completed_at timestamp default current_timestamp not null,
+    file_uris text[] not null,
     foreign key (strategy_id) references strategies(id)
 );
 

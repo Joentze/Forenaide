@@ -50,7 +50,8 @@ INSERT INTO
     extraction_schema,
     status,
     started_at,
-    completed_at
+    completed_at,
+    file_uris
   )
 VALUES
   (
@@ -61,7 +62,8 @@ VALUES
     '{"config": {"key": "value"}}',
     'completed',
     current_timestamp - interval '1 hour',
-    current_timestamp
+    current_timestamp,
+    ARRAY ['https://example.com/file1.json', 'https://example.com/file2.json']
   ),
   (
     '3642fbc9-e3b1-41d3-bde8-6c6d521f75d7',
@@ -69,9 +71,10 @@ VALUES
     'Description for Pipeline Run B',
     'a83c8e7b-b314-4a2e-906c-2e43f7882c9d',
     '{"config": {"key": "value2"}}',
-    'running',
+    'processing',
     current_timestamp - interval '30 minutes',
-    current_timestamp
+    current_timestamp,
+    ARRAY ['https://example.com/file3.json', 'https://example.com/file4.json']
   );
 
 -- Insert mock data for data_sources
