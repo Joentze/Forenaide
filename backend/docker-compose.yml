@@ -11,9 +11,22 @@ services:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
   worker:
+    env_file:
+      - .env
     build:
       context: ./worker
       dockerfile: Dockerfile
     container_name: worker
+    depends_on:
+      - rabbitmq
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8000:8000" # FastAPI server port
+    env_file:
+      - .env
     depends_on:
       - rabbitmq
