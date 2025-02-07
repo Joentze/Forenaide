@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Path, Response
+import json
+from lifespans import rabbitmq
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Path, Response
 from fastapi.responses import JSONResponse
 from deps import SBaseDeps
 from uuid import UUID
@@ -22,12 +24,15 @@ async def get_pipeline_run(supabase: SBaseDeps, pipeline_id: UUID) -> PipelineRu
 
 
 @router.post("/", response_model=PipelineRunResponse)
-async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineRun):
+async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineRun, background_tasks: BackgroundTasks):
     """
     creates pipeline run
     """
     data = pipeline_run.model_dump(mode="json")
     response = await supabase.table("pipeline_runs").insert(data).execute()
+    # publish message to extraction queue
+    background_tasks.add_task(rabbitmq.publish_message,
+                              "extraction", json.dumps(data))
     return JSONResponse(content=response.data[0], status_code=201)
 
 # Get all pipeline runs

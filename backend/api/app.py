@@ -7,8 +7,9 @@ from bucket import sources
 from bucket import outputs
 from template import templates
 from pipeline import pipelines
+from lifespans import lifespan
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 api = APIRouter()
 api.include_router(router=sources.router)
 api.include_router(router=outputs.router)

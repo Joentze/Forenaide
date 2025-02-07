@@ -6,10 +6,12 @@ from pydantic_settings import BaseSettings
 from supabase import create_async_client, AsyncClient
 import dotenv
 
-dotenv.load_dotenv()
-
 
 class Environ(BaseSettings):
+    """
+    environ variables for api
+    """
+    rabbitmq_url: str
     supabase_url: str = ""
     supabase_key: str = ""
 
@@ -23,10 +25,11 @@ key: str = environ.supabase_key
 if not url or not key:
     raise ValueError("Supabase URL and Key must be provided in the .env file")
 
-# bound_async_client = functools.partial(create_async_client, url, key)
-
 
 async def provide_client():
+    """
+    supabase client dependencies
+    """
     return await create_async_client(url, key)
 
 

@@ -1,11 +1,11 @@
 import subprocess
 import shlex
-import pytest
+import pytest_asyncio
 from app import app
 from fastapi.testclient import TestClient
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 def api_client():
     """
     creates test fastapi client
