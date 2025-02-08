@@ -31,3 +31,13 @@ async def get_public_file_url(file_name: str):
         return {"download_url": public_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{file_name}")
+async def delete_file_by_name(supabase: SBaseDeps, file_name: str):
+  try:
+    await supabase.storage.from_("sources").remove([file_name])
+
+    return
+
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=str(e))
