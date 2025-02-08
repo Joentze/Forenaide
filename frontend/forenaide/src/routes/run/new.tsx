@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Combobox } from "@/components/ui/combobox";
 import { useCombobox } from "@/hooks/useCombobox";
+import { useToast } from "@/hooks/use-toast"
 import { useDropzone } from 'react-dropzone'
-import { File as LRFile, Settings, CheckCircle } from 'lucide-react'
+import { File as LRFile, Settings, CheckCircle, Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/run/new')({
   component: PipelineComponent,
@@ -157,6 +158,63 @@ function ConfigUpload({
     setConfigFile(new File(["content"], value, ));
   });
 
+  const { toast } = useToast()
+
+  const [saveTemplateButtonActive, setSaveTemplateButtonActive] = React.useState<Boolean>(true)
+
+  /**
+   * Sends a POST request to templates endpoint to create a new template
+   * @returns JSON response of request | null
+   */
+  const saveTemplate = async () => {
+    if (!saveTemplateButtonActive) return null
+    const create_template_url = "http://127.0.0.1:8000/templates"
+
+    // Need to convert the file into json
+    // ...
+
+    let dataToReturn = null
+    try {
+      setSaveTemplateButtonActive(false)
+      const response = await fetch(create_template_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Template C",
+          description: "Description for Template C",
+          extraction_schema: {
+            fields: [
+              { name: "field1", type: "string" },
+              { name: "field2", type: "integer" },
+            ],
+          },
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      // Parse response JSON
+      const data = await response.json(); 
+
+      // Show success
+      toast({
+        title: "Success",
+        description: "Template is saved!",
+      })
+      
+      dataToReturn = data
+    } catch (error) {
+      console.error("Error creating template:", error);
+    }
+
+    // Reset button status
+    setSaveTemplateButtonActive(true)
+    return dataToReturn
+  }
+
   return (
     <div>
       <h3 className="mb-4 text-lg font-bold">Upload your configuration file</h3>
@@ -178,11 +236,24 @@ function ConfigUpload({
         {/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
       </div>
 
-      {console.log(configFile)}
       {configFile && (<Card className="card">
         <CardHeader className="card-header">
           <CardTitle className="card-title">
-            Current Template
+            <div className='flex justify-between items-center'>
+              <p>
+                Current Template
+              </p>
+              <div>
+                <Button
+                    size="sm"
+                    className="btn-primary" onClick={saveTemplate}
+                    disabled={!saveTemplateButtonActive}
+                  >
+                  {!saveTemplateButtonActive && (<Loader2 className="animate-spin" />)}
+                  {saveTemplateButtonActive ? "Save Template" : "Please Wait"}
+                </Button>
+              </div>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="card-content">

@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "3870ebb6-eb63-45c9-8d74-58ef39fb1ceb",
+		"_postman_id": "d9509032-f1fd-400a-972c-f041b88916fe",
 		"name": "ForenAIDE SMU x KPMG",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
-		"_exporter_id": "29186472"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27590355"
 	},
 	"item": [
 		{
@@ -14,7 +14,20 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://127.0.0.1:8000/templates"
+						"url": {
+							"raw": "http://127.0.0.1:8000/templates",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"templates"
+							]
+						}
 					},
 					"response": []
 				},
@@ -23,7 +36,21 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://127.0.0.1:8000/templates/bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8"
+						"url": {
+							"raw": "http://127.0.0.1:8000/templates/bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"templates",
+								"bda1b6b4-f7ae-4f65-b9c0-d8b3a9f1c7a8"
+							]
+						}
 					},
 					"response": []
 				},
@@ -41,7 +68,20 @@
 								}
 							}
 						},
-						"url": "http://127.0.0.1:8000/templates"
+						"url": {
+							"raw": "http://127.0.0.1:8000/templates",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"templates"
+							]
+						}
 					},
 					"response": []
 				},
@@ -59,7 +99,21 @@
 								}
 							}
 						},
-						"url": "http://127.0.0.1:8000/templates/a190df33-9389-4660-872b-e469f0dc856a"
+						"url": {
+							"raw": "http://127.0.0.1:8000/templates/a190df33-9389-4660-872b-e469f0dc856a",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"templates",
+								"a190df33-9389-4660-872b-e469f0dc856a"
+							]
+						}
 					},
 					"response": []
 				},
@@ -68,7 +122,21 @@
 					"request": {
 						"method": "DELETE",
 						"header": [],
-						"url": "http://127.0.0.1:8000/templates/<template_id>"
+						"url": {
+							"raw": "http://127.0.0.1:8000/templates/<template_id>",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"templates",
+								"<template_id>"
+							]
+						}
 					},
 					"response": []
 				}
@@ -92,7 +160,21 @@
 								}
 							]
 						},
-						"url": "http://127.0.0.1:8000/data_sources/upload"
+						"url": {
+							"raw": "http://127.0.0.1:8000/data_sources/upload",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"data_sources",
+								"upload"
+							]
+						}
 					},
 					"response": []
 				},
@@ -111,7 +193,21 @@
 								}
 							]
 						},
-						"url": "http://127.0.0.1:8000/outputs/upload"
+						"url": {
+							"raw": "http://127.0.0.1:8000/outputs/upload",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"outputs",
+								"upload"
+							]
+						}
 					},
 					"response": []
 				},
@@ -120,7 +216,22 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://127.0.0.1:8000/data_sources/download/2024-10-23 16.34.11.jpg"
+						"url": {
+							"raw": "http://127.0.0.1:8000/data_sources/download/2024-10-23 16.34.11.jpg",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"data_sources",
+								"download",
+								"2024-10-23 16.34.11.jpg"
+							]
+						}
 					},
 					"response": []
 				},
@@ -129,7 +240,190 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://127.0.0.1:8000/outputs/download/new.json"
+						"url": {
+							"raw": "http://127.0.0.1:8000/outputs/download/new.json",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"outputs",
+								"download",
+								"new.json"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "pipeline",
+			"item": [
+				{
+					"name": "pipelines",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pipelines/{pipeline_id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines/e39cf94f-e395-48cb-9751-13b010dcac6c",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines",
+								"e39cf94f-e395-48cb-9751-13b010dcac6c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pipelines",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pipeline Run 1\",\n  \"description\": \"Sample pipeline run\",\n  \"strategy_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"schema\": {\"key\": \"value\"}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pipelines/{pipeline_id}",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pipeline Run 1\",\n  \"description\": \"Sample pipeline run\",\n  \"strategy_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"schema\": {\"key\": \"value\"},\n  \"status\": \"Finished!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines/e39cf94f-e395-48cb-9751-13b010dcac6c",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines",
+								"e39cf94f-e395-48cb-9751-13b010dcac6c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pipelines/{pipeline_id}",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"status\": \"Started\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines/e39cf94f-e395-48cb-9751-13b010dcac6c",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines",
+								"e39cf94f-e395-48cb-9751-13b010dcac6c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pipelines/{pipeline_id}",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/pipelines/e39cf94f-e395-48cb-9751-13b010dcac6c",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"pipelines",
+								"e39cf94f-e395-48cb-9751-13b010dcac6c"
+							]
+						}
 					},
 					"response": []
 				}
