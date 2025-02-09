@@ -128,10 +128,6 @@ function FileUpload({ files, setFiles }: FileUploadProps) {
 }
 
 
-const templatesPlaceholders = [
-  { value: "template1", label: "template1" },
-  { value: "template2", label: "template2" },
-];
 function ConfigUpload({
   configFile,
   setConfigFile,
@@ -161,6 +157,49 @@ function ConfigUpload({
   const { toast } = useToast()
 
   const [saveTemplateButtonActive, setSaveTemplateButtonActive] = React.useState<Boolean>(true)
+
+  const [currentTemplates, setCurrentTemplates] = React.useState([]);
+
+  React.useEffect(() => {
+    // Get existing templates
+    retrieveExistingTemplates().then((dbTemplates) => {
+      // Update the combobox selection options
+      const comboboxSelectionOptions = dbTemplates.map(item => ({
+        label: item.name,
+        value: item.name
+      }));      
+      setCurrentTemplates(comboboxSelectionOptions)
+    })
+  }, [])
+
+  /**
+   * Sends a GET request to templates endpoint to get all templates
+   * @returns JSON response of request | null
+   */
+  const retrieveExistingTemplates = async () => {
+    const get_template_url = "http://127.0.0.1:8000/templates"
+
+    let dataToReturn = null
+    try {
+      // Fetch
+      const response = await fetch(get_template_url, {
+        method: "GET"
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      // Parse response JSON
+      const data = await response.json(); 
+      
+      // Assign data
+      dataToReturn = data
+    } catch (error) {
+      console.error("Error retrieving templates:", error);
+    }
+
+    return dataToReturn
+  }
 
   /**
    * Sends a POST request to templates endpoint to create a new template
@@ -232,7 +271,7 @@ function ConfigUpload({
         Or select a previously uploaded configuration file:
       </h4>
       <div>
-        <Combobox options={templatesPlaceholders} comboboxState={combobox} />
+        <Combobox options={currentTemplates} comboboxState={combobox} />
         {/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
       </div>
 
