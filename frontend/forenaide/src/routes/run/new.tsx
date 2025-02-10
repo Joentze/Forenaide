@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import FileUpload from './-components/FileUpload'
 // import ConfigUpload from './-components/ConfigUpload'
 // import Confirmation from './-components/Confirmation'
-import { Combobox } from "@/components/ui/combobox";
+import { Combobox } from "@/components/ui/Combobox";
 import { useCombobox } from "@/hooks/useCombobox";
 import { useToast } from "@/hooks/use-toast"
 import { useDropzone } from 'react-dropzone'
