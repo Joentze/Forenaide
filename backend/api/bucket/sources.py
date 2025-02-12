@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, status
+from fastapi.responses import JSONResponse
 from deps import SBaseDeps
 import dotenv
 import time
@@ -19,12 +20,12 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
             file_content,
             {"content-type": file.content_type}
         )
+        return JSONResponse({
+                          "message": "File uploaded successfully",
+                          "file_path": response.full_path,
+                          "download_link": f"{supabase_url}/storage/v1/object/public/{bucket_name}/{response.full_path}"
+                        }, status_code=201)
 
-        return {
-                "message": "File uploaded successfully",
-                "file_path": response.full_path,
-                "download_link": f"{supabase_url}/storage/v1/object/public/{bucket_name}/{response.full_path}"
-                }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -39,10 +40,12 @@ async def get_public_file_url(file_name: str):
 
 @router.delete("/{file_name}")
 async def delete_file_by_name(supabase: SBaseDeps, file_name: str):
-  try:
-    await supabase.storage.from_("sources").remove([file_name])
+    try:
+        await supabase.storage.from_("sources").remove([file_name])
 
-    return
+        return JSONResponse({
+          "message": f"File {file_name} deleted successfully"
+        }, status_code=status.HTTP_204_NO_CONTENT)
 
-  except Exception as e:
-    raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

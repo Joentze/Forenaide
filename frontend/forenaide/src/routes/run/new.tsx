@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import FileUpload from './-components/FileUpload'
+import FileUpload, { useFileStore } from './-components/FileUpload'
 // import ConfigUpload from './-components/ConfigUpload'
 // import Confirmation from './-components/Confirmation'
 import { Combobox } from "@/components/ui/Combobox";
@@ -84,7 +84,7 @@ function ConfigUpload({
 
   const combobox = useCombobox("", (value: string) => {
     if (value == "") return
-    setConfigFile(new File(["content"], value, ));
+    setConfigFile(new File(["content"], value,));
   });
 
   const { toast } = useToast()
@@ -100,7 +100,7 @@ function ConfigUpload({
       const comboboxSelectionOptions = dbTemplates.map(item => ({
         label: item.name,
         value: item.name
-      }));      
+      }));
       setCurrentTemplates(comboboxSelectionOptions)
     })
   }, [])
@@ -118,13 +118,13 @@ function ConfigUpload({
       const response = await fetch(get_template_url, {
         method: "GET"
       });
-  
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       // Parse response JSON
-      const data = await response.json(); 
-      
+      const data = await response.json();
+
       // Assign data
       dataToReturn = data
     } catch (error) {
@@ -164,19 +164,19 @@ function ConfigUpload({
           },
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       // Parse response JSON
-      const data = await response.json(); 
+      const data = await response.json();
 
       // Show success
       toast({
         title: "Success",
         description: "Template is saved!",
       })
-      
+
       dataToReturn = data
     } catch (error) {
       console.error("Error creating template:", error);
@@ -217,10 +217,10 @@ function ConfigUpload({
               </p>
               <div>
                 <Button
-                    size="sm"
-                    className="btn-primary" onClick={saveTemplate}
-                    disabled={!saveTemplateButtonActive}
-                  >
+                  size="sm"
+                  className="btn-primary" onClick={saveTemplate}
+                  disabled={!saveTemplateButtonActive}
+                >
                   {!saveTemplateButtonActive && (<Loader2 className="animate-spin" />)}
                   {saveTemplateButtonActive ? "Save Template" : "Please Wait"}
                 </Button>
@@ -296,7 +296,7 @@ function PipelineComponent() {
   const steps: Step[] = [
     {
       label: 'File Upload',
-      content: <FileUpload files={files} setFiles={setFiles} />,
+      content: <FileUpload useFileStore={useFileStore} />,
       icon: <LRFile />,
     },
     {
