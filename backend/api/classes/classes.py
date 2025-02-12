@@ -53,6 +53,16 @@ class UpdatePipelineRun(BaseModel):
     completed_at: Optional[str] = None
 
 
+class PipelineFilePath(BaseModel):
+    """
+    base model for each file
+    """
+    uri: Optional[str] = None
+    mimetype: str
+    bucket_path: str
+    filename: str
+
+
 class CreatePipelineRun(BaseModel):
     """
     base model to create pipeline run
@@ -62,7 +72,7 @@ class CreatePipelineRun(BaseModel):
     strategy_id: UUID
     extraction_schema: Dict[str, Any]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
-    file_uris: List[str] = Field(..., min_length=1)
+    file_paths: List[PipelineFilePath] = Field(..., min_length=1)
 
 
 class PipelineRunResponse(BaseModel):

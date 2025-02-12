@@ -98,6 +98,8 @@ async def file_to_pdf_to_jpeg_to_text_to_row_ollama(input_step: StepData) -> Ste
     return step_data
 
 
+
+
 def process_message(ch, method, properties, body):
     """processes incoming extraction messages"""
     try:
@@ -106,7 +108,7 @@ def process_message(ch, method, properties, body):
 
         str_message = body.decode()
         pipeline_message = PipelineRunResponse(**json.loads(str_message))
-        
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         # Reject the message in case of processing error
