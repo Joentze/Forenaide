@@ -1,6 +1,6 @@
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, UploadFile, File
+from fastapi.responses import JSONResponse, Response
 from deps import SBaseDeps
 import dotenv
 
@@ -30,16 +30,18 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
         )
         return JSONResponse(content=response.data[0], status_code=201)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return Response(status_code=500, content=str(e))
 
 
-@router.get("/download/{file_name}")
-async def get_public_file_url(file_name: str):
-    try:
-        bucket_name = "sources"
-        public_url = f"{
-            supabase_url}/storage/v1/object/public/{bucket_name}/{file_name}"
+# NOTE: removed the following endpoint because not necessary for now
 
-        return {"download_url": public_url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.get("/download/{file_name}")
+# async def get_public_file_url(file_name: str):
+#     try:
+#         bucket_name = "sources"
+#         public_url = f"{
+#             supabase_url}/storage/v1/object/public/{bucket_name}/{file_name}"
+
+#         return {"download_url": public_url}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
