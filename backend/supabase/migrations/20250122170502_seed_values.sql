@@ -32,20 +32,20 @@ VALUES
     'file_image_openai',
     'File Image OpenAI',
     'Strategy for extracting structured data from images of files using OpenAI'
-  ),
-  (
-    'c6f9a84c-7585-4ea0-bfbc-b4f8ce0b17e1',
-    'file_text_openai',
-    'File Text OpenAI',
-    'Strategy for extracting structured data from text of images of files using OpenAI'
-  ),
-  (
-    '07af897d-d896-49a8-82b4-015e88769b08',
-    'file_text_ollama',
-    'Office Image OpenAI',
-    'Strategy for extracting structured data from text of images of files using Ollama'
   );
 
+-- (
+--   'c6f9a84c-7585-4ea0-bfbc-b4f8ce0b17e1',
+--   'file_text_openai',
+--   'File Text OpenAI',
+--   'Strategy for extracting structured data from text of images of files using OpenAI'
+-- ),
+-- (
+--   '07af897d-d896-49a8-82b4-015e88769b08',
+--   'file_text_ollama',
+--   'Office Image OpenAI',
+--   'Strategy for extracting structured data from text of images of files using Ollama'
+-- );
 -- Insert mock data for pipeline_runs
 INSERT INTO
   pipeline_runs (

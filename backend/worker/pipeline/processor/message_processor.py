@@ -1,6 +1,8 @@
 import asyncio
 from supabase import AsyncClient
-from typing import Any, Dict, List
+from typing import Any, Coroutine, Dict, List
+from pipeline.router.file_strategy_router import route_files_to_pipeline
+from pipeline.model.StrategyModel import StrategyResponseModel
 from pipeline.model.SchemaModel import SchemaConfiguration
 from pipeline.model.StepDataModel import StepData
 from pipeline.model.PipelineModel import CreatePipelineRun
@@ -11,31 +13,40 @@ class MessageProcessor:
     processes incoming rabbitmq message
     """
     bucket_name = "sources"
+    strategies_table_name = "strategies"
 
     def __init__(self, client: AsyncClient) -> None:
         self.client = client
 
-    async def process_message(self, pipeline_message: CreatePipelineRun):
+    async def process_message(self, pipeline_message: CreatePipelineRun) -> List[StepData]:
         """
         process incoming rabbitmq message
         """
-        step_data_tasks = [self._prepare_step_data(filename=file.filename,
-                                                   mimetype=file.mimetype,
-                                                   path=file.bucket_path,
-                                                   extraction_schema=pipeline_message.extraction_schema)
-                           for file in pipeline_message.file_paths]
-        step_datas: List[StepData] = asyncio.gather(*step_data_tasks)
-        
+        strategy_id = str(pipeline_message.strategy_id)
+        extraction_tasks = [self._prepare_extraction(
+            strategy_id=strategy_id,
+            filename=file.filename,
+            mimetype=file.mimetype,
+            path=file.bucket_path,
+            extraction_schema=pipeline_message.extraction_schema)
+            for file in pipeline_message.file_paths]
 
-    async def _prepare_step_data(self,
-                                 filename: str,
-                                 mimetype: str,
-                                 path: str,
-                                 extraction_schema: Dict[str, Any]
-                                 ) -> StepData:
+        step_data_results: List[StepData] = await asyncio.gather(*extraction_tasks)
+        if any(step_data is None for step_data in step_data_results):
+            raise ValueError("One or more step data preparations failed.")
+        return step_data_results
+
+    async def _prepare_extraction(self,
+                                  strategy_id: str,
+                                  filename: str,
+                                  mimetype: str,
+                                  path: str,
+                                  extraction_schema: Dict[str, Any]
+                                  ) -> StepData:
+        strategy = await self._get_strategy(strategy_id=strategy_id)
         file_bytes: bytes = await self._download_file(path=path)
         config: SchemaConfiguration = extraction_schema
-        return StepData(
+        step_data = StepData(
             event={
                 "filename": filename,
                 "mimetype": mimetype,
@@ -45,6 +56,9 @@ class MessageProcessor:
                 "extraction_config": config
             }
         )
+        pipeline: Coroutine[Any, Any, StepData] = route_files_to_pipeline(
+            strategy=strategy, mimetype=mimetype)
+        return await pipeline(step_data)
 
     async def _download_file(self, path: str) -> bytes:
         """
@@ -52,3 +66,12 @@ class MessageProcessor:
         """
         response = await self.client.storage.from_(self.bucket_name).download(path)
         return response
+
+    async def _get_strategy(self, strategy_id: str) -> str:
+        """
+        get strategy for pipeline run
+        """
+        response = await self.client.from_(self.strategies_table_name).select("strategy").eq("id", strategy_id).execute()
+        if len(response.data) == 0:
+            raise ValueError("strategy does not exists")
+        return response.data[0]

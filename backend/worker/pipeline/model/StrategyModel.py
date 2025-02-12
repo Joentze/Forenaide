@@ -1,5 +1,7 @@
 from enum import StrEnum
 
+from pydantic import BaseModel
+
 
 class ExtractionStrategies(StrEnum):
     """
@@ -27,3 +29,13 @@ class ExtractionStrategies(StrEnum):
     # extraction from image not available for ollama
 
     # IMAGE_TEXT_OLLAMA = "image_text_ollama"
+
+
+class StrategyResponseModel(BaseModel):
+    """
+    base model for strategy
+    """
+    id: str
+    strategy: ExtractionStrategies
+    name: str
+    description: str
