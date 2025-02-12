@@ -35,9 +35,9 @@ create table data_sources (
 );
 
 create table sources_pipeline (
-    id uuid primary key,
     pipeline_id uuid not null,
     source_id uuid not null,
+    primary key (pipeline_id, source_id),
     foreign key (pipeline_id) references pipeline_runs(id),
     foreign key (source_id) references data_sources(id)
 );

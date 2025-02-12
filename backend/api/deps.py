@@ -2,10 +2,12 @@ import asyncio
 import functools
 from typing import Annotated
 from fastapi import Depends
+from gotrue._async.gotrue_base_api import Callable
 from pydantic_settings import BaseSettings
 from supabase import create_async_client, AsyncClient
 import dotenv
 
+dotenv.load_dotenv()
 
 class Environ(BaseSettings):
     """

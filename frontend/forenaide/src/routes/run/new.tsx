@@ -2,8 +2,11 @@ import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Combobox } from "@/components/ui/combobox";
+import { useCombobox } from "@/hooks/useCombobox";
+import { useToast } from "@/hooks/use-toast"
 import { useDropzone } from 'react-dropzone'
-import { File, Settings, CheckCircle } from 'lucide-react'
+import { File as LRFile, Settings, CheckCircle, Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/run/new')({
   component: PipelineComponent,
@@ -124,6 +127,7 @@ function FileUpload({ files, setFiles }: FileUploadProps) {
   )
 }
 
+
 function ConfigUpload({
   configFile,
   setConfigFile,
@@ -145,6 +149,111 @@ function ConfigUpload({
     maxFiles: 1, // Restrict to only one file
   })
 
+  const combobox = useCombobox("", (value: string) => {
+    if (value == "") return
+    setConfigFile(new File(["content"], value, ));
+  });
+
+  const { toast } = useToast()
+
+  const [saveTemplateButtonActive, setSaveTemplateButtonActive] = React.useState<Boolean>(true)
+
+  const [currentTemplates, setCurrentTemplates] = React.useState([]);
+
+  React.useEffect(() => {
+    // Get existing templates
+    retrieveExistingTemplates().then((dbTemplates) => {
+      // Update the combobox selection options
+      const comboboxSelectionOptions = dbTemplates.map(item => ({
+        label: item.name,
+        value: item.name
+      }));      
+      setCurrentTemplates(comboboxSelectionOptions)
+    })
+  }, [])
+
+  /**
+   * Sends a GET request to templates endpoint to get all templates
+   * @returns JSON response of request | null
+   */
+  const retrieveExistingTemplates = async () => {
+    const get_template_url = "http://127.0.0.1:8000/templates"
+
+    let dataToReturn = null
+    try {
+      // Fetch
+      const response = await fetch(get_template_url, {
+        method: "GET"
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      // Parse response JSON
+      const data = await response.json(); 
+      
+      // Assign data
+      dataToReturn = data
+    } catch (error) {
+      console.error("Error retrieving templates:", error);
+    }
+
+    return dataToReturn
+  }
+
+  /**
+   * Sends a POST request to templates endpoint to create a new template
+   * @returns JSON response of request | null
+   */
+  const saveTemplate = async () => {
+    if (!saveTemplateButtonActive) return null
+    const create_template_url = "http://127.0.0.1:8000/templates"
+
+    // Need to convert the file into json
+    // ...
+
+    let dataToReturn = null
+    try {
+      setSaveTemplateButtonActive(false)
+      const response = await fetch(create_template_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Template C",
+          description: "Description for Template C",
+          extraction_schema: {
+            fields: [
+              { name: "field1", type: "string" },
+              { name: "field2", type: "integer" },
+            ],
+          },
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      // Parse response JSON
+      const data = await response.json(); 
+
+      // Show success
+      toast({
+        title: "Success",
+        description: "Template is saved!",
+      })
+      
+      dataToReturn = data
+    } catch (error) {
+      console.error("Error creating template:", error);
+    }
+
+    // Reset button status
+    setSaveTemplateButtonActive(true)
+    return dataToReturn
+  }
+
   return (
     <div>
       <h3 className="mb-4 text-lg font-bold">Upload your configuration file</h3>
@@ -158,40 +267,55 @@ function ConfigUpload({
         </p>
       </div>
 
-      {configFile && (
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Selected Configuration File:</h4>
-          <div className="bg-gray-100 p-2 rounded flex justify-between items-center">
-            <span>
-              {configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
-            </span>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => setConfigFile(null)}
-            >
-              Remove
-            </Button>
-          </div>
-        </div>
-      )}
-
       <h4 className="font-semibold mt-4 mb-2">
         Or select a previously uploaded configuration file:
       </h4>
-      <ul className="space-y-2">
-        {previousConfigs.map((config, index) => (
-          <li
-            key={index}
-            className="flex justify-between items-center bg-gray-100 p-2 rounded cursor-pointer"
-            onClick={() => setConfigFile(new File([], config.name))}
-          >
-            <span>
-              {config.name} ({(config.size / 1024).toFixed(2)} KB)
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div>
+        <Combobox options={currentTemplates} comboboxState={combobox} />
+        {/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
+      </div>
+
+      {configFile && (<Card className="card">
+        <CardHeader className="card-header">
+          <CardTitle className="card-title">
+            <div className='flex justify-between items-center'>
+              <p>
+                Current Template
+              </p>
+              <div>
+                <Button
+                    size="sm"
+                    className="btn-primary" onClick={saveTemplate}
+                    disabled={!saveTemplateButtonActive}
+                  >
+                  {!saveTemplateButtonActive && (<Loader2 className="animate-spin" />)}
+                  {saveTemplateButtonActive ? "Save Template" : "Please Wait"}
+                </Button>
+              </div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="card-content">
+          <div className="mt-4">
+            <h4 className="font-semibold mb-2">Selected Configuration File:</h4>
+            <div className="bg-gray-100 p-2 rounded flex justify-between items-center">
+              <span>
+                {configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
+              </span>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  combobox.reset()
+                  setConfigFile((prev) => null)
+                }}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>)}
     </div>
   )
 }
@@ -240,7 +364,7 @@ function PipelineComponent() {
     {
       label: 'File Upload',
       content: <FileUpload files={files} setFiles={setFiles} />,
-      icon: <File />,
+      icon: <LRFile />,
     },
     {
       label: 'Configuration',
