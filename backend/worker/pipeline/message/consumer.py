@@ -41,7 +41,9 @@ class RabbitMQConsumer:
             host=host,
             port=port,
             virtual_host=virtual_host,
-            credentials=self.credentials
+            credentials=self.credentials,
+            connection_attempts=3,
+            retry_delay=5
         )
         self.queue_name = queue_name
         self.exchange_name = exchange_name
@@ -84,6 +86,7 @@ class RabbitMQConsumer:
                         routing_key=self.routing_key
                     )
 
+            self.logger.info("Successfully connected to RabbitMQ")
             return self
         except Exception as e:
             self.logger.error(f"Error setting up RabbitMQ consumer: {str(e)}")
