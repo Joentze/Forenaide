@@ -6,13 +6,12 @@ import { persist, createJSONStorage } from "zustand/middleware"
 import { produce, enableMapSet } from "immer"
 import { cn } from "@/lib/utils"
 
-
 interface FileStore {
   files: FileInfo[]
   validFiles: FileInfo[]
   addFiles: (files: [string, File][]) => void
   failed: (fileId: string, message: string) => void
-  uploaded: (fileId: string, url: string) => void
+  uploaded: (fileId: string, filePath: string, downloadUrl: string) => void
   removeFile: (fileId: string) => void
 }
 
@@ -27,14 +26,20 @@ export type FileInfo = {
   id: string,
   status: FileStatus,
   message?: string,
-  url?: string,
+  downloadUrl?: string,
   filePath?: string,
   fileObj: File
 }
 
+type FileUploadResponse = {
+  message: string
+  file_path: string
+  download_link: string
+}
+
 export const useFileStore = create<FileStore>(
   // create(persist<FileStore>((set) => ({
-  (set) => ({
+  (set, get) => ({
     files: [],
     validFiles: [],
     addFiles: (files) => {
@@ -63,7 +68,7 @@ export const useFileStore = create<FileStore>(
           const file = state.files.find(f => f.id === fileId)
           if (file) {
             file.status = FileStatus.UPLOADED
-            file.url = url
+            file.downloadUrl = url
           }
         })
       )
@@ -96,6 +101,24 @@ function randomPromise(): Promise<string> {
   })
 }
 
+async function uploadFile(file: File): Promise<never | FileUploadResponse> {
+  const res = await fetch("http://localhost:8000/api/data_sources/upload", {
+    method: "POST",
+    // add file to body
+    body: (() => {
+      const data = new FormData();
+      data.append("file", file);
+      return data
+    })()
+  })
+
+  const resBody = await res.json()
+
+  if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
+
+  return resBody as FileUploadResponse
+}
+
 export default function FileUpload({ useFileStore }: { useFileStore: UseBoundStore<StoreApi<FileStore>> }) {
   const files = useFileStore(state => state.files)
   const addFiles = useFileStore(state => state.addFiles)
@@ -109,13 +132,13 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
     addFiles(filesToUpload);
 
     const fileUploading = filesToUpload.map(([id, file]) => {
-      return [id, randomPromise()] as const
+      return [id, uploadFile(file)] as const
     })
 
     fileUploading.forEach(([id, filePromise]) => {
       filePromise
         .then((result) => {
-          uploaded(id, result)
+          uploaded(id, result.file_path, result.download_link)
         })
         .catch((reason) => {
           failed(id, reason)
