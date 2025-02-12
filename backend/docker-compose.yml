@@ -7,9 +7,6 @@ services:
     ports:
       - "5672:5672" # RabbitMQ main port
       - "15672:15672" # RabbitMQ management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: password
   worker:
     env_file:
       - .env
