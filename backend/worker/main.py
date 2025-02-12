@@ -174,48 +174,49 @@ if __name__ == "__main__":
     #     )
     # )
     # pprint(response["event"]["rows"])
-
+    environ = Environ()
     with RabbitMQConsumer(
-        host='localhost',
+        host=environ.rabbitmq_host,
+        port=environ.rabbitmq_port,
         queue_name='extraction'
     ) as consumer:
         consumer.consume(process_message)
-    # response_docx = asyncio.run(file_to_pdf_to_jpeg_to_image_to_row_openai(
-    #     input_step=StepData(
-    #         event={
-    #             "filename": "test.docx",
-    #             "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    #             "file_bytes": open("/Users/tanjoen/Downloads/test.docx", 'rb').read()
-    #         },
-    #         context={
-    #             "extraction_config": {
-    #                 "name": "extraction_tool",
-    #                 "description": "extract the relevant fields for documents",
-    #                 "schema": [
-    #                         {
-    #                             "name": "name",
-    #                             "description": "The name of the product",
-    #                             "type": SchemaTypePrimitive.STRING
-    #                         },
-    #                     {
-    #                             "name": "price",
-    #                             "description": "The price of the product",
-    #                             "type": SchemaTypePrimitive.FLOAT
-    #                             },
-    #                     {
-    #                             "name": "description",
-    #                             "description": "A detailed description of the product",
-    #                             "type": SchemaTypePrimitive.STRING
-    #                             },
-    #                     {
-    #                             "name": "tags",
-    #                             "description": "Tags associated with the product",
-    #                             "type": SchemaTypePrimitive.ARRAY_STRING,
-    #                             "array_item_description": "each tag associated with the product"
-    #                             }
-    #                 ]
-    #             }
-    #         }
-    #     )
-    # ))
-    # pprint(response_docx["event"]["rows"])
+        # response_docx = asyncio.run(file_to_pdf_to_jpeg_to_image_to_row_openai(
+        #     input_step=StepData(
+        #         event={
+        #             "filename": "test.docx",
+        #             "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        #             "file_bytes": open("/Users/tanjoen/Downloads/test.docx", 'rb').read()
+        #         },
+        #         context={
+        #             "extraction_config": {
+        #                 "name": "extraction_tool",
+        #                 "description": "extract the relevant fields for documents",
+        #                 "schema": [
+        #                         {
+        #                             "name": "name",
+        #                             "description": "The name of the product",
+        #                             "type": SchemaTypePrimitive.STRING
+        #                         },
+        #                     {
+        #                             "name": "price",
+        #                             "description": "The price of the product",
+        #                             "type": SchemaTypePrimitive.FLOAT
+        #                             },
+        #                     {
+        #                             "name": "description",
+        #                             "description": "A detailed description of the product",
+        #                             "type": SchemaTypePrimitive.STRING
+        #                             },
+        #                     {
+        #                             "name": "tags",
+        #                             "description": "Tags associated with the product",
+        #                             "type": SchemaTypePrimitive.ARRAY_STRING,
+        #                             "array_item_description": "each tag associated with the product"
+        #                             }
+        #                 ]
+        #             }
+        #         }
+        #     )
+        # ))
+        # pprint(response_docx["event"]["rows"])

@@ -1,21 +1,13 @@
-import asyncio
-import functools
+"""
+create dependencies
+"""
 from typing import Annotated
 from fastapi import Depends
-from gotrue._async.gotrue_base_api import Callable
-from pydantic_settings import BaseSettings
+from classes.environ import Environ
 from supabase import create_async_client, AsyncClient
 import dotenv
 
 dotenv.load_dotenv()
-
-class Environ(BaseSettings):
-    """
-    environ variables for api
-    """
-    rabbitmq_url: str
-    supabase_url: str = ""
-    supabase_key: str = ""
 
 
 environ = Environ()
