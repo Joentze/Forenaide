@@ -1,9 +1,10 @@
 """
 base models of pipeline, templates
 """
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import Any, Dict, Optional, List
 from enum import StrEnum
+
 from pydantic import BaseModel, Field
 
 
@@ -84,8 +85,9 @@ class PipelineRunResponse(BaseModel):
     description: str
     extraction_schema: Dict[str, Any]
     status: PipelineStatus
-    file_uris: List[str]
+    file_paths: List[str]
     strategy_id: UUID
     started_at: str
     completed_at: str
 # ========
+

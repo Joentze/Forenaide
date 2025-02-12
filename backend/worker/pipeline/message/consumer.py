@@ -132,11 +132,5 @@ class RabbitMQConsumer:
 
 # Using the context manager
 if __name__ == "__main__":
-    # with RabbitMQConsumer(
-    #     host='localhost',
-    #     queue_name='my_queue',
-    #     exchange_name='my_exchange',
-    #     routing_key='my_routing_key'
-    # ) as consumer:
-    #     consumer.consume(process_message)
+
     pass
