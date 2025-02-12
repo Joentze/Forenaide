@@ -1,19 +1,19 @@
 import { Button } from "@/components/ui/button"
-import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { X, File as FileIcon, FileStack } from "lucide-react"
+import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning } from "lucide-react"
 import { create, StoreApi, UseBoundStore } from "zustand"
-import { useShallow } from "zustand/react/shallow"
-import { produce } from "immer"
+import { persist, createJSONStorage } from "zustand/middleware"
+import { produce, enableMapSet } from "immer"
 import { cn } from "@/lib/utils"
+
 
 interface FileStore {
   files: FileInfo[]
-  validFiles: FileInfo[],
-  addFiles: (file: File[]) => void
-  failed: (fileIdx: number, message: string) => void
-  uploaded: (fileIdx: number, url: string) => void
-  removeFile: (fileIdx: number) => void
+  validFiles: FileInfo[]
+  addFiles: (files: [string, File][]) => void
+  failed: (fileId: string, message: string) => void
+  uploaded: (fileId: string, url: string) => void
+  removeFile: (fileId: string) => void
 }
 
 enum FileStatus {
@@ -24,6 +24,7 @@ enum FileStatus {
 }
 
 export type FileInfo = {
+  id: string,
   status: FileStatus,
   message?: string,
   url?: string,
@@ -31,42 +32,55 @@ export type FileInfo = {
   fileObj: File
 }
 
-export const useFileStore = create<FileStore>((set) => ({
-  files: [],
-  validFiles: [],
-  addFiles: (files) => {
-    set(
-      produce((state: FileStore) => {
-        for (const file of files) {
-          state.files.push({ status: FileStatus.UPLOADING, fileObj: file })
-        }
-      })
-    )
-  },
-  failed: (fileIdx, msg) => {
-    set(
-      produce((state: FileStore) => {
-        state.files[fileIdx].status = FileStatus.FAILED
-        state.files[fileIdx].message = msg
-      })
-    )
-  },
-  uploaded: (fileIdx, url) => {
-    set(
-      produce((state: FileStore) => {
-        state.files[fileIdx].status = FileStatus.UPLOADED
-        state.files[fileIdx].url = url
-      })
-    )
-  },
-  removeFile: (fileIdx) => {
-    set(
-      produce((state: FileStore) => {
-        state.files.splice(fileIdx, 1)
-      })
-    )
-  }
-}))
+export const useFileStore = create<FileStore>(
+  // create(persist<FileStore>((set) => ({
+  (set) => ({
+    files: [],
+    validFiles: [],
+    addFiles: (files) => {
+      set(
+        produce((state: FileStore) => {
+          for (const [id, file] of files) {
+            state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
+          }
+        })
+      )
+    },
+    failed: (fileId, msg) => {
+      set(
+        produce((state: FileStore) => {
+          const file = state.files.find(f => f.id === fileId)
+          if (file) {
+            file.status = FileStatus.FAILED
+            file.message = msg
+          }
+        })
+      )
+    },
+    uploaded: (fileId, url) => {
+      set(
+        produce((state: FileStore) => {
+          const file = state.files.find(f => f.id === fileId)
+          if (file) {
+            file.status = FileStatus.UPLOADED
+            file.url = url
+          }
+        })
+      )
+    },
+    removeFile: (fileId) => {
+      set(
+        produce((state: FileStore) => {
+          const index = state.files.findIndex(f => f.id === fileId)
+          if (index !== -1) {
+            state.files.splice(index, 1)
+          }
+        })
+      )
+    }
+  }))
+
+// , { name: "fileStorage" }))
 
 function randomPromise(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -90,21 +104,21 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
   const removeFile = useFileStore(state => state.removeFile)
 
   const onDrop = async (acceptedFiles: File[]) => {
-    const currentSize = files.length;
-    addFiles(acceptedFiles);
+    const filesToUpload = acceptedFiles.map(file => [crypto.randomUUID(), file] as [string, File])
+    console.log(filesToUpload)
+    addFiles(filesToUpload);
 
-    const fileUploading = acceptedFiles.map((file, index) => {
-      return randomPromise();
+    const fileUploading = filesToUpload.map(([id, file]) => {
+      return [id, randomPromise()] as const
     })
 
-    fileUploading.forEach((filePromise, idx) => {
-      const position = currentSize + idx;
+    fileUploading.forEach(([id, filePromise]) => {
       filePromise
         .then((result) => {
-          uploaded(position, result)
+          uploaded(id, result)
         })
         .catch((reason) => {
-          failed(position, reason)
+          failed(id, reason)
         })
     })
   }
@@ -132,39 +146,39 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
           Drag & drop files here, or click to select files
         </p>
       </div>
-
       {files.length > 0 && (
         <div className="mt-4">
           <h4 className="font-semibold mb-2">Selected Files:</h4>
           <div className="grid grid-cols-3 gap-2">
-            {files.map((file, index) => (
+            {files.map((file) => (
               <main
-                key={index}
+                key={file.id}
                 className={cn("flex justify-between items-center border p-4 rounded", file.status == FileStatus.FAILED && "bg-red-100")}
               >
                 <div className="flex justify-between items-center gap-3">
                   <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
-                    <FileIcon className="text-secondary-foreground" />
+                    {(file.status == FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
+                      || (file.status == FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
+                      || (file.status == FileStatus.FAILED) && <FileWarning size={30} />
+                    }
                   </figure>
                   <section className="flex flex-col">
                     {file.fileObj.name}
                     <p className={cn("mt-0.5 opacity-60 text-sm"
-                      , file.status == FileStatus.FAILED && "text-red-600"
+                      , file.status == FileStatus.FAILED && "text-destructive"
                       , file.status == FileStatus.UPLOADED && "text-green-600"
                       // , [FileStatus.FAILED, FileStatus.UPLOADED].includes(file.status) && "font-semibold"
                     )}>
-                      {`${file.status} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
+                      {`${file.status}${file.message ? ": " + file.message : ""} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
                     </p>
                   </section>
                 </div>
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="relative hover:bg-transparent hover:border-destructive hover:text-destructive p-0"
-                  onClick={() => removeFile(index)}
+                <button
+                  className="relative hover:bg-transparent hover:text-destructive p-0 max-h-24 flex items-center justify-center"
+                  onClick={() => removeFile(file.id)}
                 >
-                  <X size="64" />
-                </Button>
+                  <X />
+                </button>
                 {/* <span>{file.status}</span> */}
               </main>
             ))}
