@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # RabbitMQ main port
+      - "15672:15672" # RabbitMQ management UI
+
+  worker:
+    env_file:
+      - .env
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: worker
+    depends_on:
+      - rabbitmq
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8000:8000" # FastAPI server port
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq

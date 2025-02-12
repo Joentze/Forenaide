@@ -1,7 +1,7 @@
 create table templates (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     name varchar(100) not null,
-    description text,
+    description text not null,
     extraction_schema json not null,
     created_at timestamp default current_timestamp not null
 );
@@ -14,7 +14,7 @@ create table strategies (
 );
 
 create table pipeline_runs (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     name varchar(100) not null,
     description text,
     strategy_id uuid not null,
@@ -22,6 +22,7 @@ create table pipeline_runs (
     status varchar(255) not null,
     started_at timestamp default current_timestamp not null,
     completed_at timestamp default current_timestamp not null,
+    file_uris text[] not null,
     foreign key (strategy_id) references strategies(id)
 );
 

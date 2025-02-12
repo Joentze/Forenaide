@@ -1,8 +1,10 @@
+import json
 import ast
 from pprint import pprint
 import asyncio
 
 from openai import AsyncClient
+from pipeline.model.PipelineModel import PipelineRunResponse
 from pipeline.extractor.text.ocr_extractor import OCRExtractor
 from pipeline.model.SchemaModel import SchemaTypePrimitive
 from pipeline import Pipeline
@@ -94,6 +96,23 @@ async def file_to_pdf_to_jpeg_to_text_to_row_ollama(input_step: StepData) -> Ste
 
     step_data["event"]["rows"] = rows
     return step_data
+
+
+def process_message(ch, method, properties, body):
+    """processes incoming extraction messages"""
+    try:
+        print(f"Received message: {body.decode()}")
+        # Process the message here
+
+        str_message = body.decode()
+        pipeline_message = PipelineRunResponse(**json.loads(str_message))
+        
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except Exception as e:
+        # Reject the message in case of processing error
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        print(f"Error processing message: {str(e)}")
+
 
 if __name__ == "__main__":
     # response = asyncio.run(
