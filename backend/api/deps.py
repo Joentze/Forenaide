@@ -11,10 +11,10 @@ dotenv.load_dotenv()
 
 class Environ(BaseSettings):
     """
-    environ variables for api
+    environ variables for api. Defaults are overriden by environment variables
     """
-    rabbitmq_url: str
-    supabase_url: str = ""
+    rabbitmq_url: str = "rabbitmq"
+    supabase_url: str = "http://host.docker.internal:54321"
     supabase_key: str = ""
 
 
