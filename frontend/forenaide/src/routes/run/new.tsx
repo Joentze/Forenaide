@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import FileUpload, { useFileStore } from './-components/FileUpload'
+import FileUpload, { FileInfo, FileStatus, useFileStore } from './-components/FileUpload'
 // import ConfigUpload from './-components/ConfigUpload'
 // import Confirmation from './-components/Confirmation'
 import { Combobox } from "@/components/ui/Combobox";
@@ -257,7 +257,7 @@ function Confirmation({
   files,
   configFile,
 }: {
-  files: File[]
+  files: FileInfo[]
   configFile: File | null
 }) {
   return (
@@ -268,7 +268,7 @@ function Confirmation({
       <ul className="space-y-2">
         {files.map((file, index) => (
           <li key={index} className="bg-gray-100 p-2 rounded">
-            {file.name} ({(file.size / 1024).toFixed(2)} KB)
+            {file.fileObj.name} ({(file.fileObj.size / 1024).toFixed(2)} KB)
           </li>
         ))}
       </ul>
@@ -286,12 +286,16 @@ function Confirmation({
 
 function PipelineComponent() {
   const [currentStep, setCurrentStep] = React.useState(0)
-  const [files, setFiles] = React.useState<File[]>([])
   const [configFile, setConfigFile] = React.useState<File | null>(null)
   const [previousConfigs, setPreviousConfigs] = React.useState([
     { name: 'default.csv', size: 1024 },
     { name: 'default2.xlsx', size: 2048 },
   ])
+
+  const files = useFileStore(state => state.files)
+
+  const uploadedFiles = files
+    .filter(file => file.status == FileStatus.UPLOADED)
 
   const steps: Step[] = [
     {
@@ -312,7 +316,7 @@ function PipelineComponent() {
     },
     {
       label: 'Confirmation',
-      content: <Confirmation files={files} configFile={configFile} />,
+      content: <Confirmation files={uploadedFiles} configFile={configFile} />,
       icon: <CheckCircle />,
     },
   ]
@@ -361,7 +365,12 @@ function PipelineComponent() {
           <div></div>
         )}
         {currentStep < steps.length - 1 ? (
-          <Button className="btn-primary" onClick={goToNextStep} disabled={currentStep === 0 && files.length === 0}>
+          //
+          <Button className="btn-primary"
+            onClick={goToNextStep}
+            // show next button only if all files are uploaded
+            disabled={(currentStep === 0 && (files.length === 0 || files.length !== uploadedFiles.length))
+              || (currentStep === 1 && (!configFile))}>
             Next
           </Button>
         ) : (

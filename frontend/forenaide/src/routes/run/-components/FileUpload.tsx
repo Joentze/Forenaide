@@ -5,6 +5,7 @@ import { create, StoreApi, UseBoundStore } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { produce, enableMapSet } from "immer"
 import { cn } from "@/lib/utils"
+import { uploadFile } from "../../../lib/uploads"
 
 interface FileStore {
   files: FileInfo[]
@@ -15,7 +16,7 @@ interface FileStore {
   removeFile: (fileId: string) => void
 }
 
-enum FileStatus {
+export enum FileStatus {
   UPLOADING = "Uploading...",
   FAILED = "Failed",
   REMOVING = "Removing",
@@ -29,12 +30,6 @@ export type FileInfo = {
   downloadUrl?: string,
   filePath?: string,
   fileObj: File
-}
-
-type FileUploadResponse = {
-  message: string
-  file_path: string
-  download_link: string
 }
 
 export const useFileStore = create<FileStore>(
@@ -93,26 +88,6 @@ export const useFileStore = create<FileStore>(
       )
     }
   }))
-
-// , { name: "fileStorage" }))
-
-async function uploadFile(file: File): Promise<never | FileUploadResponse> {
-  const res = await fetch("http://localhost:8000/data_sources/upload", {
-    method: "POST",
-    // add file to body
-    body: (() => {
-      const data = new FormData();
-      data.append("file", file);
-      return data
-    })()
-  })
-
-  const resBody = await res.json()
-
-  if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
-
-  return resBody as FileUploadResponse
-}
 
 async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
   if (!file.filePath)
