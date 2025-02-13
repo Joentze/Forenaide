@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/button"
 import { useDropzone } from "react-dropzone"
-import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning } from "lucide-react"
+import { X, File as FileIcon, LoaderCircle, FileWarning } from "lucide-react"
 import { create, StoreApi, UseBoundStore } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
-import { produce, enableMapSet } from "immer"
+import { persist } from "zustand/middleware"
+import { produce } from "immer"
 import { cn } from "@/lib/utils"
-import { uploadFile } from "../../../lib/uploads"
+import { jsonStorage } from "@/lib/uploads"
+import { FileUploadResponse, uploadFile } from "../../../lib/uploads"
 
-interface FileStore {
+export interface FileStore {
   files: FileInfo[]
   validFiles: FileInfo[]
   addFiles: (files: [string, File][]) => void
@@ -32,62 +32,62 @@ export type FileInfo = {
   fileObj: File
 }
 
-export const useFileStore = create<FileStore>(
-  // create(persist<FileStore>((set) => ({
-  (set, get) => ({
-    files: [],
-    validFiles: [],
-    addFiles: (files) => {
-      set(
-        produce((state: FileStore) => {
-          for (const [id, file] of files) {
-            state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
-          }
-        })
-      )
-    },
-    failed: (fileId, msg) => {
-      set(
-        produce((state: FileStore) => {
-          const file = state.files.find(f => f.id === fileId)
-          if (file) {
-            file.status = FileStatus.FAILED
-            file.message = msg
-          }
-        })
-      )
-    },
-    uploaded: (fileId, filePath, url) => {
-      set(
-        produce((state: FileStore) => {
-          const file = state.files.find(f => f.id === fileId)
-          if (file) {
-            file.status = FileStatus.UPLOADED
-            file.filePath = filePath
-            file.downloadUrl = url
-          }
-        })
-      )
-    },
-    removeFile: async (fileId) => {
-      const index = get().files.findIndex(f => f.id === fileId)
-      const file = get().files[index]
+export const useFileStore = create(persist<FileStore>((set, get) => ({
+  // (set, get) => ({
+  files: [],
+  validFiles: [],
+  addFiles: (files) => {
+    set(
+      produce((state: FileStore) => {
+        for (const [id, file] of files) {
+          state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
+        }
+      })
+    )
+  },
+  failed: (fileId, msg) => {
+    set(
+      produce((state: FileStore) => {
+        const file = state.files.find(f => f.id === fileId)
+        if (file) {
+          file.status = FileStatus.FAILED
+          file.message = msg
+        }
+      })
+    )
+  },
+  uploaded: (fileId, filePath, url) => {
+    set(
+      produce((state: FileStore) => {
+        const file = state.files.find(f => f.id === fileId)
+        if (file) {
+          file.status = FileStatus.UPLOADED
+          file.filePath = filePath
+          file.downloadUrl = url
+        }
+      })
+    )
+  },
+  removeFile: async (fileId) => {
+    const index = get().files.findIndex(f => f.id === fileId)
+    const file = get().files[index]
 
-      if (file?.status === FileStatus.UPLOADED) {
-        set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
-        await deleteFile(file);
-      }
-
-      set(
-        produce((state: FileStore) => {
-          const index = state.files.findIndex(f => f.id === fileId)
-          if (index !== -1) {
-            state.files.splice(index, 1)
-          }
-        })
-      )
+    if (file?.status === FileStatus.UPLOADED) {
+      set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
+      await deleteFile(file);
     }
-  }))
+
+    set(
+      produce((state: FileStore) => {
+        const index = state.files.findIndex(f => f.id === fileId)
+        if (index !== -1) {
+          state.files.splice(index, 1)
+        }
+      })
+    )
+  }
+}), { name: "fileStore", storage: jsonStorage }
+))
 
 async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
   if (!file.filePath)
