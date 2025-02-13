@@ -18,7 +18,7 @@ interface FileStore {
 enum FileStatus {
   UPLOADING = "Uploading...",
   FAILED = "Failed",
-  INVALID = "Invalid",
+  REMOVING = "Removing",
   UPLOADED = "Uploaded",
 }
 
@@ -62,18 +62,27 @@ export const useFileStore = create<FileStore>(
         })
       )
     },
-    uploaded: (fileId, url) => {
+    uploaded: (fileId, filePath, url) => {
       set(
         produce((state: FileStore) => {
           const file = state.files.find(f => f.id === fileId)
           if (file) {
             file.status = FileStatus.UPLOADED
+            file.filePath = filePath
             file.downloadUrl = url
           }
         })
       )
     },
-    removeFile: (fileId) => {
+    removeFile: async (fileId) => {
+      const index = get().files.findIndex(f => f.id === fileId)
+      const file = get().files[index]
+
+      if (file?.status === FileStatus.UPLOADED) {
+        set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
+        await deleteFile(file);
+      }
+
       set(
         produce((state: FileStore) => {
           const index = state.files.findIndex(f => f.id === fileId)
@@ -87,22 +96,8 @@ export const useFileStore = create<FileStore>(
 
 // , { name: "fileStorage" }))
 
-function randomPromise(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const rand = Math.random()
-    setTimeout(() => {
-      if (rand < 0.5) {
-        console.log(rand)
-        resolve("uploaded")
-      }
-      else
-        reject("failed")
-    }, rand * 3000)
-  })
-}
-
 async function uploadFile(file: File): Promise<never | FileUploadResponse> {
-  const res = await fetch("http://localhost:8000/api/data_sources/upload", {
+  const res = await fetch("http://localhost:8000/data_sources/upload", {
     method: "POST",
     // add file to body
     body: (() => {
@@ -117,6 +112,19 @@ async function uploadFile(file: File): Promise<never | FileUploadResponse> {
   if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
 
   return resBody as FileUploadResponse
+}
+
+async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
+  if (!file.filePath)
+    return;
+
+  const res = await fetch("http://localhost:8000/api/data_sources" + file.filePath.replace("sources", ""), {
+    method: "DELETE",
+  })
+
+  const resBody = await res.json().catch(() => ({}))
+
+  if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
 }
 
 export default function FileUpload({ useFileStore }: { useFileStore: UseBoundStore<StoreApi<FileStore>> }) {
@@ -176,7 +184,7 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
             {files.map((file) => (
               <main
                 key={file.id}
-                className={cn("flex justify-between items-center border p-4 rounded", file.status == FileStatus.FAILED && "bg-red-100")}
+                className={cn("flex justify-between items-center border p-4 rounded transition-all", file.status == FileStatus.FAILED && "bg-red-100", file.status == FileStatus.REMOVING && "opacity-15")}
               >
                 <div className="flex justify-between items-center gap-3">
                   <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
