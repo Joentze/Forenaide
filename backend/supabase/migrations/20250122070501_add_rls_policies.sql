@@ -16,3 +16,8 @@ USING (
   auth.role() = 'anon'
 );
 
+CREATE POLICY "Allow anonymous deletes" ON storage.objects FOR
+DELETE USING (
+  bucket_id in ('sources', 'outputs')
+  AND auth.role () = 'anon'
+);

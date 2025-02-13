@@ -2,7 +2,10 @@ import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Combobox } from "@/components/ui/combobox";
+import FileUpload, { FileInfo, FileStatus, useFileStore } from './-components/FileUpload'
+// import ConfigUpload from './-components/ConfigUpload'
+// import Confirmation from './-components/Confirmation'
+import { Combobox } from "@/components/ui/Combobox";
 import { useCombobox } from "@/hooks/useCombobox";
 import { useToast } from "@/hooks/use-toast"
 import { useDropzone } from 'react-dropzone'
@@ -18,11 +21,6 @@ interface Step {
   icon: React.ReactNode
 }
 
-interface FileUploadProps {
-  files: File[]
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
-}
-
 function StageTracker({
   steps,
   currentStep,
@@ -35,26 +33,23 @@ function StageTracker({
       {steps.map((step, index) => (
         <div key={index} className="flex-1 flex flex-col items-center">
           <div
-            className={`p-4 rounded-full ${
-              index <= currentStep
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-600'
-            }`}
+            className={`p-4 rounded-full ${index <= currentStep
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-600'
+              }`}
           >
             {step.icon}
           </div>
           <div
-            className={`mt-2 text-center ${
-              index === currentStep ? 'font-bold text-blue-500' : ''
-            }`}
+            className={`mt-2 text-center ${index === currentStep ? 'font-bold text-blue-500' : ''
+              }`}
           >
             {step.label}
           </div>
           <div className="w-full h-1 bg-gray-200 mt-2 relative">
             <div
-              className={`h-full absolute top-0 left-0 ${
-                index < currentStep ? 'bg-blue-500' : 'bg-gray-200'
-              }`}
+              className={`h-full absolute top-0 left-0 ${index < currentStep ? 'bg-blue-500' : 'bg-gray-200'
+                }`}
               style={{
                 width: `${currentStep >= index ? 100 : 0}%`,
               }}
@@ -65,68 +60,6 @@ function StageTracker({
     </div>
   )
 }
-
-function FileUpload({ files, setFiles }: FileUploadProps) {
-  const onDrop = (acceptedFiles: File[]) => {
-    setFiles((prev) => [...prev, ...acceptedFiles])
-  }
-
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': [], // Accept images
-      'application/pdf': [], // Accept PDFs
-    },
-  })
-
-  return (
-    <div>
-      <h3 className="mb-4 text-lg font-bold">
-        Upload your files by dragging and dropping or clicking below:
-      </h3>
-
-      <div
-        {...getRootProps()}
-        className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center transition-all duration-200"
-      >
-        <input {...getInputProps()} />
-        <p className="text-gray-500">
-          Drag & drop files here, or click to select files
-        </p>
-      </div>
-
-      {files.length > 0 && (
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Selected Files:</h4>
-          <ul className="space-y-2">
-            {files.map((file, index) => (
-              <li
-                key={index}
-                className="flex justify-between items-center bg-gray-100 p-2 rounded"
-              >
-                <span>
-                  {file.name} ({(file.size / 1024).toFixed(2)} KB)
-                </span>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => removeFile(index)}
-                >
-                  Remove
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  )
-}
-
 
 function ConfigUpload({
   configFile,
@@ -151,7 +84,7 @@ function ConfigUpload({
 
   const combobox = useCombobox("", (value: string) => {
     if (value == "") return
-    setConfigFile(new File(["content"], value, ));
+    setConfigFile(new File(["content"], value,));
   });
 
   const { toast } = useToast()
@@ -167,7 +100,7 @@ function ConfigUpload({
       const comboboxSelectionOptions = dbTemplates.map(item => ({
         label: item.name,
         value: item.name
-      }));      
+      }));
       setCurrentTemplates(comboboxSelectionOptions)
     })
   }, [])
@@ -185,13 +118,13 @@ function ConfigUpload({
       const response = await fetch(get_template_url, {
         method: "GET"
       });
-  
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       // Parse response JSON
-      const data = await response.json(); 
-      
+      const data = await response.json();
+
       // Assign data
       dataToReturn = data
     } catch (error) {
@@ -231,19 +164,19 @@ function ConfigUpload({
           },
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
       // Parse response JSON
-      const data = await response.json(); 
+      const data = await response.json();
 
       // Show success
       toast({
         title: "Success",
         description: "Template is saved!",
       })
-      
+
       dataToReturn = data
     } catch (error) {
       console.error("Error creating template:", error);
@@ -284,10 +217,10 @@ function ConfigUpload({
               </p>
               <div>
                 <Button
-                    size="sm"
-                    className="btn-primary" onClick={saveTemplate}
-                    disabled={!saveTemplateButtonActive}
-                  >
+                  size="sm"
+                  className="btn-primary" onClick={saveTemplate}
+                  disabled={!saveTemplateButtonActive}
+                >
                   {!saveTemplateButtonActive && (<Loader2 className="animate-spin" />)}
                   {saveTemplateButtonActive ? "Save Template" : "Please Wait"}
                 </Button>
@@ -324,7 +257,7 @@ function Confirmation({
   files,
   configFile,
 }: {
-  files: File[]
+  files: FileInfo[]
   configFile: File | null
 }) {
   return (
@@ -335,7 +268,7 @@ function Confirmation({
       <ul className="space-y-2">
         {files.map((file, index) => (
           <li key={index} className="bg-gray-100 p-2 rounded">
-            {file.name} ({(file.size / 1024).toFixed(2)} KB)
+            {file.fileObj.name} ({(file.fileObj.size / 1024).toFixed(2)} KB)
           </li>
         ))}
       </ul>
@@ -353,17 +286,21 @@ function Confirmation({
 
 function PipelineComponent() {
   const [currentStep, setCurrentStep] = React.useState(0)
-  const [files, setFiles] = React.useState<File[]>([])
   const [configFile, setConfigFile] = React.useState<File | null>(null)
   const [previousConfigs, setPreviousConfigs] = React.useState([
     { name: 'default.csv', size: 1024 },
     { name: 'default2.xlsx', size: 2048 },
   ])
 
+  const files = useFileStore(state => state.files)
+
+  const uploadedFiles = files
+    .filter(file => file.status == FileStatus.UPLOADED)
+
   const steps: Step[] = [
     {
       label: 'File Upload',
-      content: <FileUpload files={files} setFiles={setFiles} />,
+      content: <FileUpload useFileStore={useFileStore} />,
       icon: <LRFile />,
     },
     {
@@ -379,7 +316,7 @@ function PipelineComponent() {
     },
     {
       label: 'Confirmation',
-      content: <Confirmation files={files} configFile={configFile} />,
+      content: <Confirmation files={uploadedFiles} configFile={configFile} />,
       icon: <CheckCircle />,
     },
   ]
@@ -428,7 +365,12 @@ function PipelineComponent() {
           <div></div>
         )}
         {currentStep < steps.length - 1 ? (
-          <Button className="btn-primary" onClick={goToNextStep}>
+          //
+          <Button className="btn-primary"
+            onClick={goToNextStep}
+            // show next button only if all files are uploaded
+            disabled={(currentStep === 0 && (files.length === 0 || files.length !== uploadedFiles.length))
+              || (currentStep === 1 && (!configFile))}>
             Next
           </Button>
         ) : (

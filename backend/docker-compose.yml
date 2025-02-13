@@ -7,7 +7,6 @@ services:
     ports:
       - "5672:5672" # RabbitMQ main port
       - "15672:15672" # RabbitMQ management UI
-
   worker:
     env_file:
       - .env
@@ -28,3 +27,6 @@ services:
       - .env
     depends_on:
       - rabbitmq
+    volumes:
+      - ./api:/api
+    restart: always

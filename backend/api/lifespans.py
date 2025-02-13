@@ -3,6 +3,7 @@ from message.connection import RabbitMQConnection
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+from deps import environ
 
 
 # Initialize RabbitMQ connection handler
@@ -17,7 +18,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     FastAPI lifespan context manager for handling RabbitMQ connection
     """
     # Startup: establish RabbitMQ connection
-    if not rabbitmq.connect():
+    if not rabbitmq.connect(environ.rabbitmq_url):
         logger.critical(
             "Failed to establish RabbitMQ connection. Shutting down.")
         raise SystemExit(1)
