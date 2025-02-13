@@ -1,8 +1,13 @@
+import urllib
 from fastapi import APIRouter, HTTPException, UploadFile, File, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+import supabase
 from deps import SBaseDeps
 import dotenv
 import time
+import json
+from storage3.exceptions import StorageApiError
+from urllib.parse import unquote, quote
 
 router = APIRouter(prefix="/data_sources", tags=["Data Sources"])
 supabase_url = dotenv.dotenv_values().get("SUPABASE_URL", "")
@@ -26,13 +31,18 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
                           "download_link": f"{supabase_url}/storage/v1/object/public/{bucket_name}/{response.full_path}"
                         }, status_code=201)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except StorageApiError as e:
+        info = e.to_dict()
+        message = info["message"]
+
+        if info.get("code") == "InvalidKey": # noqa
+          message += " Please avoid special characters and abide by the naming guidelines: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html"
+        raise HTTPException(status_code=500, detail=message)
 
 @router.get("/download/{file_name}")
-async def get_public_file_url(file_name: str):
+async def get_public_file_url(supabase: SBaseDeps, file_name: str):
     try:
-        public_url = f"{supabase_url}/storage/v1/object/public/{bucket_name}/{file_name}"
+        public_url = f"{supabase_url}/storage/v1/object/public/{bucket_name}/{quote(file_name)}"
 
         return {"download_url": public_url}
     except Exception as e:
@@ -40,12 +50,18 @@ async def get_public_file_url(file_name: str):
 
 @router.delete("/{file_name}")
 async def delete_file_by_name(supabase: SBaseDeps, file_name: str):
+    file_name = file_name.replace(f"/{bucket_name}", "")
     try:
-        await supabase.storage.from_("sources").remove([file_name])
+        res = await supabase.storage.from_(bucket_name).remove([file_name])
 
-        return JSONResponse({
-          "message": f"File {file_name} deleted successfully"
-        }, status_code=status.HTTP_204_NO_CONTENT)
+        if len(res) == 0:
+          raise Exception("Nothing was deleted")
+
+        return Response(status_code=204)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+#http://127.0.0.1:54321/storage/v1/object/public/sources/68700304_Inter-Pacific%20Petroleum%20PTE.%20LTD..pdf_1739389367
+#http://127.0.0.1:54321/storage/v1/object/public/sources/68700304_Inter-Pacific%20Petroleum%20%20PTE.%20LTD..pdf_1739389367
