@@ -27,3 +27,6 @@ services:
       - .env
     depends_on:
       - rabbitmq
+    volumes:
+      - ./api:/api
+    restart: always
