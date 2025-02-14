@@ -163,16 +163,16 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
               >
                 <div className="flex justify-between items-center gap-3">
                   <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
-                    {(file.status == FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
-                      || (file.status == FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
-                      || (file.status == FileStatus.FAILED) && <FileWarning size={30} />
+                    {(file.status === FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
+                      || (file.status === FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
+                      || (file.status === FileStatus.FAILED) && <FileWarning size={30} />
                     }
                   </figure>
                   <section className="flex flex-col">
                     {file.fileObj.name}
                     <p className={cn("mt-0.5 opacity-60 text-sm"
-                      , file.status == FileStatus.FAILED && "text-destructive"
-                      , file.status == FileStatus.UPLOADED && "text-green-600"
+                      , file.status === FileStatus.FAILED && "text-destructive"
+                      , file.status === FileStatus.UPLOADED && "text-green-600"
                       // , [FileStatus.FAILED, FileStatus.UPLOADED].includes(file.status) && "font-semibold"
                     )}>
                       {`${file.status}${file.message ? ": " + file.message : ""} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
