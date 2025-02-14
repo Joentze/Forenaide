@@ -1,10 +1,13 @@
 import argparse
 import os
+from numpy import average
 import pandas as pd
-from typing import Callable, Tuple, List, Dict
+import statistics as st
+from typing import List, Dict
 from grits import grits_from_html
 from bs4 import BeautifulSoup
 from io import StringIO
+from tabulate import tabulate
 
 parser = argparse.ArgumentParser(
     description="Compare ground truth and predicted files in a directory."
@@ -20,26 +23,48 @@ def main():
     args = parser.parse_args()
 
     directory = args.directory
-    compare_files(directory)
+    similarity_data = compare_files(directory)
+    display_similarity_table(similarity_data)
 
-def compare_files(directory: str) -> None:
+def display_similarity_table(similarity_data: List[Dict[str, str]]) -> None:
+    headers = [ "Ground Truth", "Prediction", "Similarity" ]
+
+    similarities = [float(row["similarity"]) for row in similarity_data]
+    try:
+        std_dev = st.stdev(similarities)
+    except st.StatisticsError:
+        std_dev = float('nan')
+    
+    similarity_table = [
+        [row["ground truth"], row["prediction"], row["similarity"]] for row in similarity_data
+    ]
+    similarity_table.append(["", "Standard Deviation:", f"{std_dev:.5f}"])
+    similarity_table.append(["", "Average Similarity:", f"{average(similarities)}"])
+    table = tabulate(similarity_table, headers=headers, tablefmt="rounded_grid")
+    print(table)
+
+def compare_files(directory: str) -> List[Dict[str, str]]:
     """
     Compares the ground truth and predicted files in the given directory
     """
+    similarity_list = []
     file_pairs = get_file_pairs(directory)
     for file, filenames in file_pairs.items():
         if len(filenames) != 2:
             print(f"Skipping {file} as it does not have both ground truth and predicted files.")
             continue
-        pretty_print_grits(file, filenames)
+        similarity_list.append(pretty_print_grits(filenames))
+    return similarity_list
 
-def pretty_print_grits(file, filenames) -> None:
+def pretty_print_grits(filenames) -> Dict[str, str]:
         gt_filename, pred_filename = filenames
         gtruth, pred = to_html(gt_filename), to_html(pred_filename)
         grits = grits_from_html(gtruth, pred)
-        print(f"Comparing {file}")
-        for key, value in grits.items():
-            print(f"\t{key}: {value}")
+        return {
+            "ground truth": gt_filename,
+            "prediction": pred_filename,
+            "similarity": grits.get("grits_precision_con", 0)
+        }
 
 def get_file_pairs(directory: str) -> Dict[str, List[str]]:
     """
