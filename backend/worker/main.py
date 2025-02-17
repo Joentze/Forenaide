@@ -114,17 +114,20 @@ def create_message_processor() -> MessageProcessor:
 def process_message(ch, method, properties, body):
     """processes incoming extraction messages"""
     try:
-        print(f"Received message: {body.decode()}")
+        # print(f"Received message: {body.decode()}")
         # Process the message here
 
         str_message = body.decode()
+
         message_processor = create_message_processor()
 
-        pipeline_message = CreatePipelineRun(**json.loads(str_message))
+        message = json.loads(str_message)
+
+        pipeline_message = CreatePipelineRun.model_validate(message)
 
         response = asyncio.run(message_processor.process_message(
             pipeline_message=pipeline_message))
-        print(response)
+        print(130, response)
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         # Reject the message in case of processing error
@@ -141,35 +144,35 @@ if __name__ == "__main__":
     #                 "mimetype": "application.pdf",
     #                 "file_bytes": open('/Users/tanjoen/Documents/Forenaide/backend/worker/test.pdf', 'rb').read()
     #             },
-    #             context={
-    #                 "extraction_config": {
-    #                     "name": "extraction_tool",
-    #                     "description": "extract the relevant fields for documents",
-    #                     "schema": [
-    #                         {
-    #                             "name": "name",
-    #                             "description": "The name of the product",
-    #                             "type": SchemaTypePrimitive.STRING
-    #                         },
-    #                         {
-    #                             "name": "price",
-    #                             "description": "The price of the product",
-    #                             "type": SchemaTypePrimitive.FLOAT
-    #                         },
-    #                         {
-    #                             "name": "description",
-    #                             "description": "A detailed description of the product",
-    #                             "type": SchemaTypePrimitive.STRING
-    #                         },
-    #                         {
-    #                             "name": "tags",
-    #                             "description": "Tags associated with the product",
-    #                             "type": SchemaTypePrimitive.ARRAY_STRING,
-    #                             "array_item_description": "each tag associated with the product"
-    #                         }
-    #                     ]
-    #                 }
+    # context={
+    #     "extraction_config": {
+    #         "name": "extraction_tool",
+    #         "description": "extract the relevant fields for documents",
+    #         "schema": [
+    #             {
+    #                 "name": "name",
+    #                 "description": "The name of the product",
+    #                 "type": SchemaTypePrimitive.STRING
+    #             },
+    #             {
+    #                 "name": "price",
+    #                 "description": "The price of the product",
+    #                 "type": SchemaTypePrimitive.FLOAT
+    #             },
+    #             {
+    #                 "name": "description",
+    #                 "description": "A detailed description of the product",
+    #                 "type": SchemaTypePrimitive.STRING
+    #             },
+    #             {
+    #                 "name": "tags",
+    #                 "description": "Tags associated with the product",
+    #                 "type": SchemaTypePrimitive.ARRAY_STRING,
+    #                 "array_item_description": "each tag associated with the product"
     #             }
+    #         ]
+    #     }
+    # }
     #         )
     #     )
     # )

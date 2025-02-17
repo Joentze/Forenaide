@@ -119,11 +119,13 @@ def route_files_to_pipeline(strategy: ExtractionStrategies, mimetype: str) -> Co
     """
     returns pipeline callable based on strategy
     """
+    print(122, "routing pipeline", strategy, mimetype)
+
     if strategy not in strategy_map:
         raise NotImplementedError("strategy has not been implemented")
     if mimetype in ("application/pdf"):
-        if strategy_map[strategy]["pdf"] is not None:
-            return strategy_map[strategy]["pdf"]
+        if strategy_map[strategy]["document"]["pdf"] is not None:
+            return strategy_map[strategy]["document"]["pdf"]
         else:
             raise ValueError(
                 "PDF is not implemented for the given strategy.")
@@ -258,8 +260,9 @@ def route_files_to_pipeline(strategy: ExtractionStrategies, mimetype: str) -> Co
         "application/x-abiword"
 
     ):
-        if strategy_map[strategy]["office"] is not None:
-            return strategy_map[strategy]["office"]
+        if strategy_map[strategy]["document"]["office"] is not None:
+
+            return strategy_map[strategy]["document"]["office"]
         else:
             raise ValueError(
                 "Office is not implemented for the given strategy.")

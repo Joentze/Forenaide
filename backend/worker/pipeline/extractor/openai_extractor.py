@@ -120,7 +120,7 @@ async def tool_call_openai_model(client: AsyncClient,
         tool_choice={
             "type": "function",
             "function":
-                {"name": extraction_config["name"]}
+                {"name": extraction_config["extraction_config"]["name"]}
         },
         messages=[
             {
@@ -133,7 +133,7 @@ async def tool_call_openai_model(client: AsyncClient,
         raise ValueError("there was no corrected json given")
     if len(response.choices[0].message.tool_calls) == 0:
         raise ValueError("there were no tool calls made")
-    if response.choices[0].message.tool_calls[0].function.name != extraction_config["name"]:
+    if response.choices[0].message.tool_calls[0].function.name != extraction_config["extraction_config"]["name"]:
         raise ValueError("tool use is incorrect")
     generated_json = json.loads(
         response.choices[0].message.tool_calls[0].function.arguments)

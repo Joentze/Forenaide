@@ -14,20 +14,22 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
     uploads file to bucket
     """
     try:
-        uuid = uuid4()
+        uuid = str(uuid4())
         file_content = await file.read()
         file_path = f"{uuid}/{file.filename}"
-        response = await supabase.from_("sources").insert({
+        body = {
             "id": uuid,
             "filename": file.filename,
             "mimetype": file.content_type,
             "path": file_path
-        }).execute()
+        }
+        response = await supabase.from_("data_sources").insert(body).execute()
         await supabase.storage.from_("sources").upload(
             file_path,
             file_content,
             {"content-type": file.content_type}
         )
+        print(33)
         return JSONResponse(content=response.data[0], status_code=201)
     except Exception as e:
         return Response(status_code=500, content=str(e))
