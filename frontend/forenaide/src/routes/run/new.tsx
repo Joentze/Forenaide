@@ -9,7 +9,14 @@ import { Combobox } from "@/components/ui/Combobox";
 import { useCombobox } from "@/hooks/useCombobox";
 import { useToast } from "@/hooks/use-toast";
 import { useDropzone } from "react-dropzone";
-import { File as LRFile, Settings, CheckCircle, Loader2 } from "lucide-react";
+import {
+	File as LRFile,
+	Settings,
+	CheckCircle,
+	Loader2,
+	Trash2,
+	Trash,
+} from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/run/new")({
@@ -295,7 +302,7 @@ function ConfigUpload({
 								onClick={() => removeField(index)}
 								className="w-20"
 							>
-								Delete
+								<Trash />
 							</Button>
 						) : (
 							<div className="w-20" />
