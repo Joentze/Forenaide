@@ -33,14 +33,22 @@ function ConfigComponent() {
 	const { getRootProps, getInputProps } = useDropzone({
 		onDrop,
 		accept: {
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // Accept Excel files
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // Accept only xlsx files
 		},
 		maxFiles: 1, // Restrict to only one file
 	});
 
 	const downloadTemplate = () => {
-		// To do
-		alert("Downloading template...");
+		fetch("src/assets/template.xlsx")
+			.then((response) => response.blob())
+			.then((blob) => {
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = "template.xlsx";
+				link.click();
+				URL.revokeObjectURL(url);
+			});
 	};
 
 	const deleteConfig = (index: number) => {
