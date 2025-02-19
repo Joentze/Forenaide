@@ -1,32 +1,133 @@
-import { Button } from "@/components/ui/button"
-import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { X, File as FileIcon } from "lucide-react"
+import { X, File as FileIcon, LoaderCircle, FileWarning } from "lucide-react"
+import { create, StoreApi, UseBoundStore } from "zustand"
+import { persist } from "zustand/middleware"
+import { produce } from "immer"
+import { cn } from "@/lib/utils"
+import { jsonStorage } from "@/lib/uploads"
+import { FileUploadResponse, uploadFile } from "../../../lib/uploads"
 
-interface FileUploadProps {
-  files: File[]
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+export interface FileStore {
+  files: FileInfo[]
+  validFiles: FileInfo[]
+  addFiles: (files: [string, File][]) => void
+  failed: (fileId: string, message: string) => void
+  uploaded: (fileId: string, filePath: string, downloadUrl: string) => void
+  removeFile: (fileId: string) => void
 }
 
-enum DataSourceStatus {
-  UPLOADING = "uploading",
-  FAILED = "failed",
-  INVALID = "invalid"
+export enum FileStatus {
+  UPLOADING = "Uploading...",
+  FAILED = "Failed",
+  REMOVING = "Removing",
+  UPLOADED = "Uploaded",
 }
 
-export type DataSource = {
-  status: DataSourceStatus,
+export type FileInfo = {
+  id: string,
+  status: FileStatus,
+  message?: string,
+  downloadUrl?: string,
+  filePath?: string,
   fileObj: File
 }
 
-export default function FileUpload({ files, setFiles }: FileUploadProps) {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles((prev) => [...prev, ...acceptedFiles])
-  }, [])
+export const useFileStore = create(persist<FileStore>((set, get) => ({
+  // (set, get) => ({
+  files: [],
+  validFiles: [],
+  addFiles: (files) => {
+    set(
+      produce((state: FileStore) => {
+        for (const [id, file] of files) {
+          state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
+        }
+      })
+    )
+  },
+  failed: (fileId, msg) => {
+    set(
+      produce((state: FileStore) => {
+        const file = state.files.find(f => f.id === fileId)
+        if (file) {
+          file.status = FileStatus.FAILED
+          file.message = msg
+        }
+      })
+    )
+  },
+  uploaded: (fileId, filePath, url) => {
+    set(
+      produce((state: FileStore) => {
+        const file = state.files.find(f => f.id === fileId)
+        if (file) {
+          file.status = FileStatus.UPLOADED
+          file.filePath = filePath
+          file.downloadUrl = url
+        }
+      })
+    )
+  },
+  removeFile: async (fileId) => {
+    const index = get().files.findIndex(f => f.id === fileId)
+    const file = get().files[index]
 
-  const removeFile = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
-  }, [])
+    if (file?.status === FileStatus.UPLOADED) {
+      set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
+      await deleteFile(file);
+    }
+
+    set(
+      produce((state: FileStore) => {
+        const index = state.files.findIndex(f => f.id === fileId)
+        if (index !== -1) {
+          state.files.splice(index, 1)
+        }
+      })
+    )
+  }
+}), { name: "fileStore", storage: jsonStorage }
+))
+
+async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
+  if (!file.filePath)
+    return;
+
+  const res = await fetch("http://localhost:8000/api/data_sources" + file.filePath.replace("sources", ""), {
+    method: "DELETE",
+  })
+
+  const resBody = await res.json().catch(() => ({}))
+
+  if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
+}
+
+export default function FileUpload({ useFileStore }: { useFileStore: UseBoundStore<StoreApi<FileStore>> }) {
+  const files = useFileStore(state => state.files)
+  const addFiles = useFileStore(state => state.addFiles)
+  const failed = useFileStore(state => state.failed)
+  const uploaded = useFileStore(state => state.uploaded)
+  const removeFile = useFileStore(state => state.removeFile)
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    const filesToUpload = acceptedFiles.map(file => [crypto.randomUUID(), file] as [string, File])
+    console.log(filesToUpload)
+    addFiles(filesToUpload);
+
+    const fileUploading = filesToUpload.map(([id, file]) => {
+      return [id, uploadFile(file)] as const
+    })
+
+    fileUploading.forEach(([id, filePromise]) => {
+      filePromise
+        .then((result) => {
+          uploaded(id, result.file_path, result.download_link)
+        })
+        .catch((reason) => {
+          failed(id, reason)
+        })
+    })
+  }
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -51,35 +152,41 @@ export default function FileUpload({ files, setFiles }: FileUploadProps) {
           Drag & drop files here, or click to select files
         </p>
       </div>
-
       {files.length > 0 && (
         <div className="mt-4">
           <h4 className="font-semibold mb-2">Selected Files:</h4>
           <div className="grid grid-cols-3 gap-2">
-            {files.map((file, index) => (
-              <div>
-                <div
-                  key={index}
-                  className="flex justify-between items-center bg-secondary p-4 rounded"
-                >
-                  <div className="flex justify-between items-center gap-2">
-                    <figure className="aspect-square border rounded-md p-2">
-                      <FileIcon className="text-secondary-foreground" />
-                    </figure>
-                    <span>
-                      {file.name} ({(file.size / 1024).toFixed(2)} KB)
-                    </span>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="hover:bg-transparent hover:border-destructive hover:text-destructive p-0"
-                    onClick={() => removeFile(index)}
-                  >
-                    <X />
-                  </Button>
+            {files.map((file) => (
+              <main
+                key={file.id}
+                className={cn("flex justify-between items-center border p-4 rounded transition-all", file.status == FileStatus.FAILED && "bg-red-100", file.status == FileStatus.REMOVING && "opacity-15")}
+              >
+                <div className="flex justify-between items-center gap-3">
+                  <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
+                    {(file.status === FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
+                      || (file.status === FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
+                      || (file.status === FileStatus.FAILED) && <FileWarning size={30} />
+                    }
+                  </figure>
+                  <section className="flex flex-col">
+                    {file.fileObj.name}
+                    <p className={cn("mt-0.5 opacity-60 text-sm"
+                      , file.status === FileStatus.FAILED && "text-destructive"
+                      , file.status === FileStatus.UPLOADED && "text-green-600"
+                      // , [FileStatus.FAILED, FileStatus.UPLOADED].includes(file.status) && "font-semibold"
+                    )}>
+                      {`${file.status}${file.message ? ": " + file.message : ""} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
+                    </p>
+                  </section>
                 </div>
-              </div>
+                <button
+                  className="relative hover:bg-transparent hover:text-destructive p-0 max-h-24 flex items-center justify-center"
+                  onClick={() => removeFile(file.id)}
+                >
+                  <X />
+                </button>
+                {/* <span>{file.status}</span> */}
+              </main>
             ))}
           </div>
         </div>

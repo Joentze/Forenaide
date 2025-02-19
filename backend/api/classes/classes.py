@@ -1,34 +1,81 @@
-from pydantic import BaseModel
-from typing import Optional, Generic, TypeVar, Any
+"""
+base models of pipeline, templates
+"""
 from uuid import UUID
-from datetime import datetime
+from typing import Any, Dict, Optional, List
+from enum import StrEnum
+from pydantic import BaseModel, Field
 
-# Templates
-class TemplateBase(BaseModel):
+
+class PipelineStatus(StrEnum):
+    """
+    pipeline status enum
+    """
+    NOT_STARTED = "not_started"
+    PROCESSING = "processing"
+    FAILED = "failed"
+    INCOMPLETE = "incomplete"
+    COMPLETED = "completed"
+
+
+class CreateTemplate(BaseModel):
+    """
+    base model create template
+    """
     name: str
-    description: Optional[str] = None
-    extraction_schema: dict
+    description: str
+    extraction_schema: Dict[str, Any]
 
-class TemplateResponse(TemplateBase):
+
+class UpdateTemplate(BaseModel):
+    """
+    base model for updating template
+    """
+    name: str
+    description: str
+    extraction_schema: Dict[str, Any]
+
+
+class TemplateResponse(CreateTemplate):
+    """
+    base model of template response
+    """
     id: UUID
     created_at: str
 
-# Pipeline Runs
-class PipelineRunBase(BaseModel):
+
+# ========
+class UpdatePipelineRun(BaseModel):
+    """
+    base model to update pipeline run
+    """
+    status: PipelineStatus
+    completed_at: Optional[str] = None
+
+
+class CreatePipelineRun(BaseModel):
+    """
+    base model to create pipeline run
+    """
     name: str
     description: Optional[str] = None
     strategy_id: UUID
-    extraction_schema: dict
-    status: Optional[str] = None
+    extraction_schema: Dict[str, Any]
+    status: PipelineStatus = PipelineStatus.NOT_STARTED
+    file_uris: List[str] = Field(..., min_length=1)
 
-class PipelineRunResponse(PipelineRunBase):
+
+class PipelineRunResponse(BaseModel):
+    """
+    base model for pipeline response
+    """
     id: UUID
-    started_at: datetime
-    completed_at: datetime
-
-class PipelineRunUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    strategy_id: Optional[UUID] = None
-    extraction_schema: Optional[dict] = None
-    status: Optional[str] = None
+    name: str
+    description: str
+    extraction_schema: Dict[str, Any]
+    status: PipelineStatus
+    file_uris: List[str]
+    strategy_id: UUID
+    started_at: str
+    completed_at: str
+# ========
