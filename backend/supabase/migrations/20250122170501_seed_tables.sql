@@ -43,7 +43,7 @@ create table sources_pipeline (
 );
 
 create table outputs (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     pipeline_id uuid not null,
     uri varchar(255) not null,
     foreign key (pipeline_id) references pipeline_runs(id)

@@ -4,7 +4,7 @@ import ast
 from openai import AsyncClient
 from supabase import create_async_client
 from pipeline.processor.message_processor import MessageProcessor
-from pipeline.model.PipelineModel import CreatePipelineRun
+from pipeline.model.PipelineModel import PipelineRunResponse
 from pipeline.extractor.text.ocr_extractor import OCRExtractor
 from pipeline import Pipeline
 from pipeline.model.environ.Environ import Environ
@@ -118,20 +118,26 @@ def process_message(ch, method, properties, body):
         # Process the message here
 
         str_message = body.decode()
-
+        print(str_message)
         message_processor = create_message_processor()
 
         message = json.loads(str_message)
+        print(message)
 
-        pipeline_message = CreatePipelineRun.model_validate(message)
+        pipeline_message = PipelineRunResponse.model_validate(message)
 
         response = asyncio.run(message_processor.process_message(
             pipeline_message=pipeline_message))
-        print(130, response)
+
+        print(response)
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         # Reject the message in case of processing error
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+        # NOTE: add in supabase updates here
+
         print(f"Error processing message: {str(e)}")
 
 

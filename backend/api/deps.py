@@ -1,6 +1,7 @@
 """
 create dependencies
 """
+from message.connection import RabbitMQConnection
 from typing import Annotated
 from fastapi import Depends
 from classes.environ import Environ
@@ -26,5 +27,22 @@ async def provide_client():
     """
     return await create_async_client(url, key)
 
+
+async def provide_rabbitmq_client():
+    """
+    rabbitmq client dependencies
+    """
+    return RabbitMQConnection()
+
+
+async def provide_environ():
+    """
+    provide environ
+    """
+    return Environ()
+
+EnvironDeps = Annotated[Environ, Depends(provide_environ)]
+
+RabbitMQDeps = Annotated[RabbitMQConnection, Depends(provide_rabbitmq_client)]
 
 SBaseDeps = Annotated[AsyncClient, Depends(provide_client)]

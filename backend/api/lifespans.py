@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         logger.critical(
             "Failed to establish RabbitMQ connection. Shutting down.")
         raise SystemExit(1)
-
+    rabbitmq.close()
     try:
         yield
     finally:

@@ -17,21 +17,6 @@ class PipelineStatus(StrEnum):
     COMPLETED = "completed"
 
 
-class PipelineRunResponse(BaseModel):
-    """
-    base model for pipeline response
-    """
-    id: UUID
-    name: str
-    description: str
-    extraction_schema: Dict[str, Any]
-    status: PipelineStatus
-    file_uris: List[str]
-    strategy_id: UUID
-    started_at: str
-    completed_at: str
-
-
 class PipelineFilePath(TypedDict):
     """
     base model for each file
@@ -55,6 +40,20 @@ class CreatePipelineRun(BaseModel):
     completed_at: Optional[str] = None
     file_paths: List[PipelineFilePath] = []
 
+
+class PipelineRunResponse(BaseModel):
+    """
+    base model for pipeline response
+    """
+    id: UUID
+    name: str
+    description: str
+    extraction_schema: Dict[str, Any]
+    status: PipelineStatus
+    strategy_id: UUID
+    started_at: str
+    completed_at: str
+    file_paths: List[PipelineFilePath] = []
 
 # test = {'name': 'test pipeline run',
 #         'description': 'test description',

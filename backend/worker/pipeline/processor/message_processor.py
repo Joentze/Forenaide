@@ -1,11 +1,13 @@
 import asyncio
+import io
+import json
 from supabase import AsyncClient
 from typing import Any, Coroutine, Dict, List
 from pipeline.router.file_strategy_router import route_files_to_pipeline
 from pipeline.model.StrategyModel import StrategyResponseModel
 from pipeline.model.SchemaModel import SchemaConfiguration
 from pipeline.model.StepDataModel import StepData
-from pipeline.model.PipelineModel import CreatePipelineRun
+from pipeline.model.PipelineModel import CreatePipelineRun, PipelineRunResponse
 
 
 class MessageProcessor:
@@ -13,12 +15,14 @@ class MessageProcessor:
     processes incoming rabbitmq message
     """
     bucket_name = "sources"
+    outputs_bucket_name = "outputs"
+    outputs_table_name = "outputs"
     strategies_table_name = "strategies"
 
     def __init__(self, client: AsyncClient) -> None:
         self.client = client
 
-    async def process_message(self, pipeline_message: CreatePipelineRun) -> List[StepData]:
+    async def process_message(self, pipeline_message: PipelineRunResponse) -> List[StepData]:
         """
         process incoming rabbitmq message
         """
@@ -36,7 +40,23 @@ class MessageProcessor:
             step_data_results: List[StepData] = await asyncio.gather(*extraction_tasks)
             if any(step_data is None for step_data in step_data_results):
                 raise ValueError("One or more step data preparations failed.")
-            return step_data_results
+
+            instances = [
+                item for entry in step_data_results for row in entry["event"]["rows"] for item in row]
+
+            response = await self.client.storage.from_(self.outputs_bucket_name).upload(
+                path=f"results/{pipeline_message.id}.json",
+                file=json.dumps(
+                    {"instances": instances}).encode('utf-8'),
+                file_options={"cache-control": "3600", "upsert": "false"}
+            )
+
+            await self.client.from_(self.outputs_table_name).insert({
+                "pipeline_id": str(pipeline_message.id),
+                "uri": response.full_path
+            }).execute()
+
+            return {"instances": instances}
         finally:
             await self.client.postgrest.aclose()
 

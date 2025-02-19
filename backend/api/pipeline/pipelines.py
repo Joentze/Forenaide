@@ -2,7 +2,7 @@ import json
 from lifespans import rabbitmq
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Path, Response
 from fastapi.responses import JSONResponse
-from deps import SBaseDeps
+from deps import EnvironDeps, SBaseDeps, RabbitMQDeps
 from uuid import UUID
 from classes.classes import CreatePipelineRun, UpdatePipelineRun, PipelineRunResponse
 from typing import List
@@ -24,15 +24,23 @@ async def get_pipeline_run(supabase: SBaseDeps, pipeline_id: UUID) -> PipelineRu
 
 
 @router.post("/", response_model=PipelineRunResponse)
-async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineRun, background_tasks: BackgroundTasks):
+async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineRun, rabbitmq_client: RabbitMQDeps, environ: EnvironDeps):
     """
     creates pipeline run
     """
     data = pipeline_run.model_dump(mode="json")
     response = await supabase.table("pipeline_runs").insert(data).execute()
     # publish message to extraction queue
-    background_tasks.add_task(rabbitmq.publish_message,
-                              "extraction", json.dumps(data))
+    # background_tasks.add_task(rabbitmq.publish_message,
+    #                           "extraction", json.dumps(data))
+    if rabbitmq_client.connect(
+        host=environ.rabbitmq_host,
+        port=environ.rabbitmq_port
+    ):
+        rabbitmq_client.publish_message(
+            "extraction", json.dumps(response.data[0]))
+    else:
+        raise Exception("Rabbit MQ refuse to connect")
     return JSONResponse(content=response.data[0], status_code=201)
 
 # Get all pipeline runs

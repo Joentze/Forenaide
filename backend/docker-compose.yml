@@ -17,6 +17,8 @@ services:
     container_name: worker
     depends_on:
       - rabbitmq
+    restart: always
+
   api:
     build:
       context: ./api
@@ -28,3 +30,4 @@ services:
       - .env
     depends_on:
       - rabbitmq
+    restart: always
