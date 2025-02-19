@@ -17,6 +17,7 @@ class MessageProcessor:
     bucket_name = "sources"
     outputs_bucket_name = "outputs"
     outputs_table_name = "outputs"
+    pipeline_runs_table_name = "pipeline_runs"
     strategies_table_name = "strategies"
 
     def __init__(self, client: AsyncClient) -> None:
@@ -28,7 +29,7 @@ class MessageProcessor:
         """
         try:
             strategy_id = str(pipeline_message.strategy_id)
-
+            await self.client.from_(self.pipeline_runs_table_name).update({"status": "processing"}).eq("id", str(pipeline_message.id)).execute()
             extraction_tasks = [self._prepare_extraction(
                 strategy_id=strategy_id,
                 filename=file["filename"],
@@ -56,7 +57,11 @@ class MessageProcessor:
                 "uri": response.full_path
             }).execute()
 
+            await self.client.from_(self.pipeline_runs_table_name).update({"status": "completed"}).eq("id", str(pipeline_message.id)).execute()
+
             return {"instances": instances}
+        except:
+            await self.client.from_(self.pipeline_runs_table_name).update({"status": "failed"}).eq("id", str(pipeline_message.id)).execute()
         finally:
             await self.client.postgrest.aclose()
 
