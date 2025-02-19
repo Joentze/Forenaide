@@ -7,6 +7,7 @@ from storage3.exceptions import StorageApiError
 
 router = APIRouter(prefix="/data_sources", tags=["Data Sources"])
 supabase_url = dotenv.dotenv_values().get("SUPABASE_URL", "")
+bucket_name = "sources"
 
 
 @router.post("/upload")
