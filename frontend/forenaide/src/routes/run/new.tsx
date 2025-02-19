@@ -248,7 +248,7 @@ function ConfigUpload({
 			{!configFile && (
 				<div className="mb-2 mt-6">
 					<h3 className="text-lg font-bold mb-2">
-						Select an existing template:
+						Select an Existing Template:
 					</h3>
 					<div>
 						<Combobox options={currentTemplates} comboboxState={combobox} />
@@ -260,7 +260,7 @@ function ConfigUpload({
 			{!configFile && (
 				<div className="mb-2 mt-6">
 					<h3 className="text-lg font-bold mb-2">
-						Or upload a configuration file
+						Or Upload a Configuration File
 					</h3>
 					<div
 						{...getRootProps()}
