@@ -126,11 +126,15 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
 Deno.serve(async (req) => {
   const { url, schema, description } = await req.json()
 
-  EdgeRuntime.waitUntil(extractStructureFromPdf({
-    pdfUrl: url,
-    jsonSchema: schema,
-    extractionDescription: description
-  }))
+  try {
+    EdgeRuntime.waitUntil(extractStructureFromPdf({
+      pdfUrl: url,
+      jsonSchema: schema,
+      extractionDescription: description
+    }))
+  } catch (e) {
+    console.error(e)
+  }
   return new Response(
     JSON.stringify({ "started": true }),
     { headers: { "Content-Type": "application/json" } },

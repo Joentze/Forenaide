@@ -7,7 +7,16 @@ services:
     ports:
       - "5672:5672" # RabbitMQ main port
       - "15672:15672" # RabbitMQ management UI
-
+  extract_pdf_runtime:
+    env_file:
+      - .env
+    container_name: extract_pdf_runtime
+    build:
+      context: ./supabase
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    
   worker:
     env_file:
       - .env
