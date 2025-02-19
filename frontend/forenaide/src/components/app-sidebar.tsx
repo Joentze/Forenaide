@@ -43,6 +43,10 @@ const items = [
 ];
 
 export function AppSidebar() {
+	// Add active route detection.
+	const currentPath =
+		typeof window !== "undefined" ? window.location.pathname : "";
+
 	return (
 		<Sidebar>
 			<SidebarContent>
@@ -57,9 +61,16 @@ export function AppSidebar() {
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										asChild
-										className="font-sans text-lg font-semibold m-1"
+										className="font-sans text-lg font-semibold m-1 pt-5 pb-5"
 									>
-										<a href={item.url}>
+										<a
+											href={item.url}
+											style={
+												item.url === currentPath
+													? { background: "lightgrey" }
+													: {}
+											}
+										>
 											<item.icon />
 											<span>{item.title}</span>
 										</a>
