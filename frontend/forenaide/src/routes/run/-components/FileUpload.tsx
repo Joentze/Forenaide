@@ -1,13 +1,13 @@
+import { Button } from "@/components/ui/button"
 import { useDropzone } from "react-dropzone"
-import { X, File as FileIcon, LoaderCircle, FileWarning } from "lucide-react"
+import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning } from "lucide-react"
 import { create, StoreApi, UseBoundStore } from "zustand"
-import { persist } from "zustand/middleware"
-import { produce } from "immer"
+import { persist, createJSONStorage } from "zustand/middleware"
+import { produce, enableMapSet } from "immer"
 import { cn } from "@/lib/utils"
-import { jsonStorage } from "@/lib/uploads"
-import { FileUploadResponse, uploadFile } from "../../../lib/uploads"
+import { uploadFile } from "../../../lib/uploads"
 
-export interface FileStore {
+interface FileStore {
   files: FileInfo[]
   validFiles: FileInfo[]
   addFiles: (files: [string, File][]) => void
@@ -32,62 +32,62 @@ export type FileInfo = {
   fileObj: File
 }
 
-export const useFileStore = create(persist<FileStore>((set, get) => ({
-  // (set, get) => ({
-  files: [],
-  validFiles: [],
-  addFiles: (files) => {
-    set(
-      produce((state: FileStore) => {
-        for (const [id, file] of files) {
-          state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
-        }
-      })
-    )
-  },
-  failed: (fileId, msg) => {
-    set(
-      produce((state: FileStore) => {
-        const file = state.files.find(f => f.id === fileId)
-        if (file) {
-          file.status = FileStatus.FAILED
-          file.message = msg
-        }
-      })
-    )
-  },
-  uploaded: (fileId, filePath, url) => {
-    set(
-      produce((state: FileStore) => {
-        const file = state.files.find(f => f.id === fileId)
-        if (file) {
-          file.status = FileStatus.UPLOADED
-          file.filePath = filePath
-          file.downloadUrl = url
-        }
-      })
-    )
-  },
-  removeFile: async (fileId) => {
-    const index = get().files.findIndex(f => f.id === fileId)
-    const file = get().files[index]
+export const useFileStore = create<FileStore>(
+  // create(persist<FileStore>((set) => ({
+  (set, get) => ({
+    files: [],
+    validFiles: [],
+    addFiles: (files) => {
+      set(
+        produce((state: FileStore) => {
+          for (const [id, file] of files) {
+            state.files.push({ id, status: FileStatus.UPLOADING, fileObj: file })
+          }
+        })
+      )
+    },
+    failed: (fileId, msg) => {
+      set(
+        produce((state: FileStore) => {
+          const file = state.files.find(f => f.id === fileId)
+          if (file) {
+            file.status = FileStatus.FAILED
+            file.message = msg
+          }
+        })
+      )
+    },
+    uploaded: (fileId, filePath, url) => {
+      set(
+        produce((state: FileStore) => {
+          const file = state.files.find(f => f.id === fileId)
+          if (file) {
+            file.status = FileStatus.UPLOADED
+            file.filePath = filePath
+            file.downloadUrl = url
+          }
+        })
+      )
+    },
+    removeFile: async (fileId) => {
+      const index = get().files.findIndex(f => f.id === fileId)
+      const file = get().files[index]
 
-    if (file?.status === FileStatus.UPLOADED) {
-      set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
-      await deleteFile(file);
+      if (file?.status === FileStatus.UPLOADED) {
+        set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
+        await deleteFile(file);
+      }
+
+      set(
+        produce((state: FileStore) => {
+          const index = state.files.findIndex(f => f.id === fileId)
+          if (index !== -1) {
+            state.files.splice(index, 1)
+          }
+        })
+      )
     }
-
-    set(
-      produce((state: FileStore) => {
-        const index = state.files.findIndex(f => f.id === fileId)
-        if (index !== -1) {
-          state.files.splice(index, 1)
-        }
-      })
-    )
-  }
-}), { name: "fileStore", storage: jsonStorage }
-))
+  }))
 
 async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
   if (!file.filePath)
@@ -163,16 +163,16 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
               >
                 <div className="flex justify-between items-center gap-3">
                   <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
-                    {(file.status === FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
-                      || (file.status === FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
-                      || (file.status === FileStatus.FAILED) && <FileWarning size={30} />
+                    {(file.status == FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
+                      || (file.status == FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
+                      || (file.status == FileStatus.FAILED) && <FileWarning size={30} />
                     }
                   </figure>
                   <section className="flex flex-col">
                     {file.fileObj.name}
                     <p className={cn("mt-0.5 opacity-60 text-sm"
-                      , file.status === FileStatus.FAILED && "text-destructive"
-                      , file.status === FileStatus.UPLOADED && "text-green-600"
+                      , file.status == FileStatus.FAILED && "text-destructive"
+                      , file.status == FileStatus.UPLOADED && "text-green-600"
                       // , [FileStatus.FAILED, FileStatus.UPLOADED].includes(file.status) && "font-semibold"
                     )}>
                       {`${file.status}${file.message ? ": " + file.message : ""} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
