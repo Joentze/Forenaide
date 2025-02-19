@@ -295,7 +295,7 @@ function PipelineComponent() {
   const files = useFileStore(state => state.files)
 
   const uploadedFiles = files
-    .filter(file => file.status === FileStatus.UPLOADED)
+    .filter(file => file.status == FileStatus.UPLOADED)
 
   const steps: Step[] = [
     {
