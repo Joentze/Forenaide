@@ -1,8 +1,9 @@
 from uuid import uuid4
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, Response
 from deps import SBaseDeps
 import dotenv
+from storage3.exceptions import StorageApiError
 
 router = APIRouter(prefix="/data_sources", tags=["Data Sources"])
 supabase_url = dotenv.dotenv_values().get("SUPABASE_URL", "")
@@ -29,10 +30,18 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
             file_content,
             {"content-type": file.content_type}
         )
-        print(33)
-        return JSONResponse(content=response.data[0], status_code=201)
-    except Exception as e:
-        return Response(status_code=500, content=str(e))
+        return JSONResponse(
+            content={**response.data[0],
+                     "url": await supabase.storage.from_("sources").get_public_url(
+                file_path
+            )}, status_code=201)
+    except StorageApiError as e:
+        info = e.to_dict()
+        message = info["message"]
+
+        if info.get("code") == "InvalidKey":  # noqa
+            message += " Please avoid special characters and abide by the naming guidelines: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html"
+        raise HTTPException(status_code=500, detail=message)
 
 
 # NOTE: removed the following endpoint because not necessary for now

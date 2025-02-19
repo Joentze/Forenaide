@@ -16,7 +16,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "9000:9000"
-    
+
+  # convert_to_pdf:
+  #   # env_file:
+  #   #   - .env
+  #   container_name: convert_to_pdf
+  #   build:
+  #     context: ./supabase
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "9001:9000"
+  #   command: ["start", "--main-service", "/examples/convert-document-to-pdf"]
   worker:
     env_file:
       - .env
