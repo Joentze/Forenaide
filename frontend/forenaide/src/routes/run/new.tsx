@@ -15,7 +15,6 @@ import {
 	CheckCircle,
 	Loader2,
 	Trash2,
-	Trash,
 } from "lucide-react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
@@ -91,7 +90,7 @@ function ConfigUpload({
 	const { getRootProps, getInputProps } = useDropzone({
 		onDrop,
 		accept: {
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // Accept Excel files
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // Accept xlsx files
 		},
 		maxFiles: 1, // Restrict to only one file
 	});
@@ -246,145 +245,150 @@ function ConfigUpload({
 
 	return (
 		<div>
-			<h3 className="mb-4 text-lg font-bold">Upload your configuration file</h3>
-			<div
-				{...getRootProps()}
-				className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center transition-all duration-200"
-			>
-				<input {...getInputProps()} />
-				<p className="text-gray-500">
-					Drag & drop configuration file here, or click to select file
-				</p>
-			</div>
-
-			<h4 className="mb-2 mt-4 text-lg font-bold">
-				Or select a previously uploaded configuration file:
-			</h4>
-			<div>
-				<Combobox options={currentTemplates} comboboxState={combobox} />
-				{/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
-			</div>
-
-			<div className="flex items-center justify-between mt-4">
-				<h3 className="mb-2 text-lg font-bold">Or Define Template</h3>
-				<Button
-					size="sm"
-					className="btn-secondary"
-					onClick={() =>
-						setTemplateFields((prev) => [
-							...prev,
-							{ name: "", type: "", description: "" },
-						])
-					}
-				>
-					New Fields
-				</Button>
-			</div>
-			<div className="mt-4 p-4 border rounded bg-gray-50 space-y-4">
-				{templateFields.map((field, index) => (
-					<div key={index} className="flex gap-4 items-end">
-						<div className="flex-1">
-							<label className="block mb-1">Field Name:</label>
-							<input
-								type="text"
-								className="w-full border rounded p-2"
-								value={field.name}
-								onChange={(e) =>
-									updateTemplateField(index, "name", e.target.value)
-								}
-							/>
-						</div>
-						<div className="flex-1">
-							<label className="block mb-1">Field Type:</label>
-							<select
-								className="w-full border rounded p-2"
-								value={field.type}
-								onChange={(e) =>
-									updateTemplateField(index, "type", e.target.value)
-								}
-							>
-								<option value="">Select type</option>
-								<option value="string">String</option>
-								<option value="integer">Integer</option>
-								<option value="boolean">Boolean</option>
-							</select>
-						</div>
-						<div className="flex-1">
-							<label className="block mb-1">Field Description:</label>
-							<input
-								type="text"
-								className="w-full border rounded p-2"
-								value={field.description}
-								onChange={(e) =>
-									updateTemplateField(index, "description", e.target.value)
-								}
-							/>
-						</div>
-						{index > 0 ? (
-							<Button
-								size="sm"
-								variant="destructive"
-								onClick={() => removeField(index)}
-								className="w-20"
-							>
-								<Trash />
-							</Button>
-						) : (
-							<div className="w-20" />
-						)}
+			{!configFile && (
+				<div className="mb-2 mt-6">
+					<h3 className="text-lg font-bold mb-2">
+						Select an existing template:
+					</h3>
+					<div>
+						<Combobox options={currentTemplates} comboboxState={combobox} />
+						{/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
 					</div>
-				))}
-			</div>
+				</div>
+			)}
+
+			{!configFile && (
+				<div className="mb-2 mt-6">
+					<h3 className="text-lg font-bold mb-2">
+						Or upload a configuration file
+					</h3>
+					<div
+						{...getRootProps()}
+						className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center transition-all duration-200"
+					>
+						<input {...getInputProps()} />
+						<p className="text-gray-500">
+							Drag & drop configuration file here, or click to select file
+						</p>
+					</div>
+				</div>
+			)}
 
 			{configFile && (
-				<Card className="card">
-					<CardHeader className="card-header">
-						<CardTitle className="card-title">
-							<div className="flex justify-between items-center">
-								<p>Current Template</p>
-								<div>
-									<Button
-										size="sm"
-										className="btn-primary"
-										onClick={saveTemplate}
-										disabled={!saveTemplateButtonActive}
-									>
-										{!saveTemplateButtonActive && (
-											<Loader2 className="animate-spin" />
-										)}
-										{saveTemplateButtonActive ? "Save Template" : "Please Wait"}
-									</Button>
-								</div>
+				<div className="mb-2 mt-6">
+					<h3 className="text-lg font-bold mb-2">
+						Selected Configuration File
+					</h3>
+					<div className="bg-gray-100 p-2 rounded flex justify-between items-center">
+						<span>
+							{configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
+						</span>
+						<Button
+							size="sm"
+							variant="destructive"
+							className="w-20"
+							onClick={() => {
+								combobox.reset();
+								setConfigFile(null);
+								setTemplateFields([{ name: "", type: "", description: "" }]);
+							}}
+						>
+							<Trash2 />
+						</Button>
+					</div>
+				</div>
+			)}
+
+			<div className="mt-6 mb-2">
+				<div className="flex items-center justify-between">
+					{!configFile && (
+						<h3 className="text-lg font-bold">Or Define Template</h3>
+					)}
+					{configFile && (
+						<h3 className="text-lg font-bold">Configuration Fields</h3>
+					)}
+					<div>
+						<Button
+							size="sm"
+							className="btn-primary mr-4"
+							onClick={saveTemplate}
+							disabled={!saveTemplateButtonActive}
+						>
+							{!saveTemplateButtonActive && (
+								<Loader2 className="animate-spin" />
+							)}
+							{saveTemplateButtonActive ? "Save Template" : "Please Wait"}
+						</Button>
+						<Button
+							size="sm"
+							className="btn-secondary"
+							onClick={() =>
+								setTemplateFields((prev) => [
+									...prev,
+									{ name: "", type: "", description: "" },
+								])
+							}
+						>
+							Add New Field
+						</Button>
+					</div>
+				</div>
+				<div className="mt-4 p-4 border rounded bg-gray-50 space-y-4">
+					{templateFields.map((field, index) => (
+						<div key={index} className="flex gap-4 items-end">
+							<div className="flex-1">
+								<label className="block mb-1">Field Name:</label>
+								<input
+									type="text"
+									className="w-full border rounded p-2"
+									value={field.name}
+									onChange={(e) =>
+										updateTemplateField(index, "name", e.target.value)
+									}
+								/>
 							</div>
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="card-content">
-						<div className="mt-4">
-							<h4 className="font-semibold mb-2">
-								Selected Configuration File:
-							</h4>
-							<div className="bg-gray-100 p-2 rounded flex justify-between items-center">
-								<span>
-									{configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
-								</span>
+							<div className="flex-1">
+								<label className="block mb-1">Field Type:</label>
+								<select
+									className="w-full border rounded p-2"
+									value={field.type}
+									onChange={(e) =>
+										updateTemplateField(index, "type", e.target.value)
+									}
+								>
+									<option value="">Select type</option>
+									<option value="string">String</option>
+									<option value="integer">Integer</option>
+									<option value="boolean">Boolean</option>
+								</select>
+							</div>
+							<div className="flex-1">
+								<label className="block mb-1">Field Description:</label>
+								<input
+									type="text"
+									className="w-full border rounded p-2"
+									value={field.description}
+									onChange={(e) =>
+										updateTemplateField(index, "description", e.target.value)
+									}
+								/>
+							</div>
+							{index > 0 ? (
 								<Button
 									size="sm"
 									variant="destructive"
-									onClick={() => {
-										combobox.reset();
-										setConfigFile(null);
-										setTemplateFields([
-											{ name: "", type: "", description: "" },
-										]);
-									}}
+									onClick={() => removeField(index)}
+									className="w-20"
 								>
-									Remove
+									<Trash2 />
 								</Button>
-							</div>
+							) : (
+								<div className="w-20" />
+							)}
 						</div>
-					</CardContent>
-				</Card>
-			)}
+					))}
+				</div>
+			</div>
 		</div>
 	);
 }
