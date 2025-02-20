@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button"
 import { useDropzone } from "react-dropzone"
-import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning } from "lucide-react"
+import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning, FileUp } from "lucide-react"
 import { create, StoreApi, UseBoundStore } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { produce, enableMapSet } from "immer"
 import { cn } from "@/lib/utils"
-import { uploadFile } from "../../../lib/uploads"
+import { FileUploadResponse, jsonStorage, uploadFile } from "../../../lib/uploads"
+import { useToast } from "@/hooks/use-toast"
 
-interface FileStore {
+export interface FileStore {
   files: FileInfo[]
   validFiles: FileInfo[]
   addFiles: (files: [string, File][]) => void
   failed: (fileId: string, message: string) => void
-  uploaded: (fileId: string, filePath: string, downloadUrl: string) => void
-  removeFile: (fileId: string) => void
+  uploaded: (fileId: string, uploadResponse: FileUploadResponse) => void
+  removeFile: (fileId: string, toast?: Function) => void
 }
 
 export enum FileStatus {
@@ -25,6 +26,7 @@ export enum FileStatus {
 
 export type FileInfo = {
   id: string,
+  storageId?: string,
   status: FileStatus,
   message?: string,
   downloadUrl?: string,
@@ -32,9 +34,7 @@ export type FileInfo = {
   fileObj: File
 }
 
-export const useFileStore = create<FileStore>(
-  // create(persist<FileStore>((set) => ({
-  (set, get) => ({
+export const useFileStore = create(persist<FileStore>((set, get) => ({
     files: [],
     validFiles: [],
     addFiles: (files) => {
@@ -57,25 +57,38 @@ export const useFileStore = create<FileStore>(
         })
       )
     },
-    uploaded: (fileId, filePath, url) => {
+    uploaded: (fileId, uploadResponse) => {
       set(
         produce((state: FileStore) => {
           const file = state.files.find(f => f.id === fileId)
           if (file) {
             file.status = FileStatus.UPLOADED
-            file.filePath = filePath
-            file.downloadUrl = url
+            file.filePath = uploadResponse.path
+            file.downloadUrl = uploadResponse.url
+            file.storageId = uploadResponse.id
           }
         })
       )
     },
-    removeFile: async (fileId) => {
+    removeFile: async (fileId, toast) => {
       const index = get().files.findIndex(f => f.id === fileId)
       const file = get().files[index]
 
       if (file?.status === FileStatus.UPLOADED) {
         set(produce(state => { state.files[index].status = FileStatus.REMOVING }))
-        await deleteFile(file);
+        try {
+          await deleteFile(file)
+        }
+        catch (e) {
+          toast &&
+          toast({
+              title: "Failed to delete file",
+              description: (e as Error).message,
+              variant: "destructive"
+          })
+          set(produce(state => { state.files[index].status = FileStatus.UPLOADED }))
+          return;
+        };
       }
 
       set(
@@ -87,13 +100,17 @@ export const useFileStore = create<FileStore>(
         })
       )
     }
-  }))
+    }), { name: "fileStore", storage: jsonStorage }
+  ))
 
 async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
   if (!file.filePath)
-    return;
+    throw new Error("Invalid file path");
 
-  const res = await fetch("http://localhost:8000/api/data_sources" + file.filePath.replace("sources", ""), {
+  if (!file?.storageId)
+    throw new Error("Invalid object ID");
+
+  const res = await fetch("http://localhost:8000/api/data_sources/" + file?.storageId, {
     method: "DELETE",
   })
 
@@ -121,7 +138,7 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
     fileUploading.forEach(([id, filePromise]) => {
       filePromise
         .then((result) => {
-          uploaded(id, result.file_path, result.download_link)
+          uploaded(id, result)
         })
         .catch((reason) => {
           failed(id, reason)
@@ -136,6 +153,8 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
       'application/pdf': [], // Accept PDFs
     },
   })
+
+  const { toast } = useToast()
 
   return (
     <div>
@@ -181,7 +200,7 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
                 </div>
                 <button
                   className="relative hover:bg-transparent hover:text-destructive p-0 max-h-24 flex items-center justify-center"
-                  onClick={() => removeFile(file.id)}
+                  onClick={() => removeFile(file.id, toast)}
                 >
                   <X />
                 </button>

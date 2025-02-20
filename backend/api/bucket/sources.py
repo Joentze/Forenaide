@@ -25,17 +25,21 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
             "mimetype": file.content_type,
             "path": file_path
         }
-        response = await supabase.from_("data_sources").insert(body).execute()
         await supabase.storage.from_("sources").upload(
             file_path,
             file_content,
             {"content-type": file.content_type}
         )
+
+        # Ensure the file is uploaded before inserting into data sources
+        response = await supabase.from_("data_sources").insert(body).execute()
+
         return JSONResponse(
             content={**response.data[0],
                      "url": await supabase.storage.from_("sources").get_public_url(
                 file_path
             )}, status_code=201)
+
     except StorageApiError as e:
         info = e.to_dict()
         message = info["message"]
@@ -45,15 +49,23 @@ async def upload_file_to_data_source(supabase: SBaseDeps, file: UploadFile = Fil
         raise HTTPException(status_code=500, detail=message)
 
 
-# NOTE: removed the following endpoint because not necessary for now
+@router.delete("/{id}")
+async def delete_file_by_id(supabase: SBaseDeps, id: str):
+    try:
+        data_source = await supabase.from_("data_sources").select("*").eq("id", id).execute()
 
-# @router.get("/download/{file_name}")
-# async def get_public_file_url(file_name: str):
-#     try:
-#         bucket_name = "sources"
-#         public_url = f"{
-#             supabase_url}/storage/v1/object/public/{bucket_name}/{file_name}"
+        if not data_source.data:
+            raise HTTPException(status_code=404, detail="file not found")
 
-#         return {"download_url": public_url}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+        path = data_source.data[0]["path"]
+        res = await supabase.storage.from_(bucket_name).remove([path])
+
+        if len(res) == 0:
+            raise Exception("Nothing was deleted")
+
+        data_source = await supabase.from_("data_sources").delete().eq("id", id).execute()
+
+        return Response(status_code=204)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
