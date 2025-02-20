@@ -42,6 +42,8 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
     creates tool calling schema for properties from schema
     """
     properties = {}
+    config = config["extraction_config"]
+    print(45, config)
     for field in config["schema"]:
         field_type = field["type"]
         if field_type.startswith("array"):
@@ -59,7 +61,7 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
                 "type": field_type,
                 "description": field["description"]
             }
-    return {
+    schema = {
         "name": config["name"],
         "description": config["description"],
         "strict": True,
@@ -84,3 +86,6 @@ def generate_tool_schema_json(config: SchemaConfiguration) -> Dict[str, Any]:
         },
         "additionalProperties": False
     }
+
+    print(88, schema)
+    return schema

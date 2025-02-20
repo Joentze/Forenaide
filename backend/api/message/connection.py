@@ -14,9 +14,9 @@ class RabbitMQConnection:
 
     def connect(self, host: str = 'localhost', port: int = 5672,
                 username: str = 'guest', password: str = 'guest',
-                virtual_host: str = '/') -> bool:
+                virtual_host: str = '/', heartbeat: int = 60) -> bool:
         """
-        Establish connection to RabbitMQ server
+        Establish connection to RabbitMQ server with a heartbeat
         Returns True if connection is successful, False otherwise
         """
         try:
@@ -28,7 +28,8 @@ class RabbitMQConnection:
                 virtual_host=virtual_host,
                 credentials=credentials,
                 connection_attempts=3,
-                retry_delay=5
+                retry_delay=5,
+                heartbeat=heartbeat
             )
 
             # Establish connection
@@ -85,6 +86,6 @@ class RabbitMQConnection:
             return True
 
         except Exception as error:
-            logger.error(f"Failed to publish message to queue {
-                         queue_name}: {error}")
+            logger.error(f"""Failed to publish message to queue {
+                         queue_name}: {error}""")
             return False

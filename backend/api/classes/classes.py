@@ -1,9 +1,10 @@
 """
 base models of pipeline, templates
 """
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import Any, Dict, Optional, List
 from enum import StrEnum
+
 from pydantic import BaseModel, Field
 
 
@@ -53,6 +54,16 @@ class UpdatePipelineRun(BaseModel):
     completed_at: Optional[str] = None
 
 
+class PipelineFilePath(BaseModel):
+    """
+    base model for each file
+    """
+    uri: Optional[str] = None
+    mimetype: str
+    bucket_path: str
+    filename: str
+
+
 class CreatePipelineRun(BaseModel):
     """
     base model to create pipeline run
@@ -62,7 +73,7 @@ class CreatePipelineRun(BaseModel):
     strategy_id: UUID
     extraction_schema: Dict[str, Any]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
-    file_uris: List[str] = Field(..., min_length=1)
+    file_paths: List[PipelineFilePath] = Field(..., min_length=1)
 
 
 class PipelineRunResponse(BaseModel):
@@ -74,8 +85,9 @@ class PipelineRunResponse(BaseModel):
     description: str
     extraction_schema: Dict[str, Any]
     status: PipelineStatus
-    file_uris: List[str]
+    file_paths: List[str]
     strategy_id: UUID
     started_at: str
     completed_at: str
 # ========
+

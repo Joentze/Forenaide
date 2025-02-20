@@ -1,21 +1,14 @@
-import asyncio
-import functools
+"""
+create dependencies
+"""
+from message.connection import RabbitMQConnection
 from typing import Annotated
 from fastapi import Depends
-from gotrue._async.gotrue_base_api import Callable
-from pydantic_settings import BaseSettings
+from classes.environ import Environ
 from supabase import create_async_client, AsyncClient
 import dotenv
 
 dotenv.load_dotenv()
-
-class Environ(BaseSettings):
-    """
-    environ variables for api. Defaults are overriden by environment variables
-    """
-    rabbitmq_url: str = "rabbitmq"
-    supabase_url: str = "http://host.docker.internal:54321"
-    supabase_key: str = ""
 
 
 environ = Environ()
@@ -34,5 +27,22 @@ async def provide_client():
     """
     return await create_async_client(url, key)
 
+
+async def provide_rabbitmq_client():
+    """
+    rabbitmq client dependencies
+    """
+    return RabbitMQConnection()
+
+
+async def provide_environ():
+    """
+    provide environ
+    """
+    return Environ()
+
+EnvironDeps = Annotated[Environ, Depends(provide_environ)]
+
+RabbitMQDeps = Annotated[RabbitMQConnection, Depends(provide_rabbitmq_client)]
 
 SBaseDeps = Annotated[AsyncClient, Depends(provide_client)]

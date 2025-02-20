@@ -1,7 +1,10 @@
+import { FileInfo, FileStore } from "@/routes/run/-components/FileUpload";
+import { createJSONStorage } from "zustand/middleware";
+
 export type FileUploadResponse = {
-  message: string
-  file_path: string
-  download_link: string
+  id: string
+  path: string
+  url: string
 }
 // , { name: "fileStorage" }))
 export async function uploadFile(file: File): Promise<never | FileUploadResponse> {
@@ -21,3 +24,26 @@ export async function uploadFile(file: File): Promise<never | FileUploadResponse
 
   return resBody as FileUploadResponse;
 }
+
+type StoredFileInfo = Omit<FileInfo, 'fileObj'> & { fileObj: any }
+
+export const jsonStorage = createJSONStorage<FileStore>(() => sessionStorage, {
+  replacer: (key, val) => {
+    let newValue = val as StoredFileInfo;
+    if (newValue && newValue?.fileObj !== undefined) {
+      newValue = structuredClone(newValue)
+      const fileObj = newValue.fileObj;
+
+      newValue.fileObj = {
+        'lastModified': fileObj.lastModified,
+        'lastModifiedDate': fileObj.lastModifiedDate,
+        'name': fileObj.name,
+        'size': fileObj.size,
+        'type': fileObj.type
+      };
+
+      return newValue;
+    }
+    return val
+  },
+})

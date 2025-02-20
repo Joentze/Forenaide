@@ -22,15 +22,16 @@ create table pipeline_runs (
     status varchar(255) not null,
     started_at timestamp default current_timestamp not null,
     completed_at timestamp default current_timestamp not null,
-    file_uris text[] not null,
+    file_paths JSON not null,
     foreign key (strategy_id) references strategies(id)
 );
 
 create table data_sources (
     id uuid primary key,
-    uri varchar(255) not null,
+    path varchar(255) not null,
     mimetype varchar(50) not null,
-    filename varchar(255) not null
+    filename varchar(255) not null,
+    uploaded_at timestamp default current_timestamp not null
 );
 
 create table sources_pipeline (
@@ -42,7 +43,7 @@ create table sources_pipeline (
 );
 
 create table outputs (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     pipeline_id uuid not null,
     uri varchar(255) not null,
     foreign key (pipeline_id) references pipeline_runs(id)
