@@ -101,3 +101,16 @@ async def delete_pipeline_run(supabase: SBaseDeps, pipeline_id: UUID):
     await get_pipeline_run(supabase, pipeline_id)
     await supabase.table("pipeline_runs").delete().eq("id", str(pipeline_id)).execute()
     return Response(status_code=204)
+
+
+@router.get("/sources/{pipeline_id}")
+async def get_sources_for_pipeline(supabase: SBaseDeps, pipeline_id: UUID):
+    """
+    gets all files for a pipeline run through sources_pipeline table
+    """
+    result = await supabase.table("sources_pipeline").select("*").eq("pipeline_id", str(pipeline_id)).execute()
+    pipeline_id = result.data[0]["pipeline_id"]
+    sources = [source["source_id"] for source in result.data]
+    response = {"pipeline_id": pipeline_id, "source_ids": sources}
+    # return response
+    return JSONResponse(content=response, status_code=200)
