@@ -29,9 +29,12 @@ export type FileInfo = {
   storageId?: string,
   status: FileStatus,
   message?: string,
+  fileObj: File,
   downloadUrl?: string,
   filePath?: string,
-  fileObj: File
+  mimetype?: string,
+  filename?: string,
+  uploaded_at?: string,
 }
 
 export const useFileStore = create(persist<FileStore>((set, get) => ({
@@ -66,6 +69,9 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
             file.filePath = uploadResponse.path
             file.downloadUrl = uploadResponse.url
             file.storageId = uploadResponse.id
+            file.mimetype = uploadResponse.mimetype
+            file.uploaded_at = uploadResponse.uploaded_at
+            file.filename = uploadResponse.filename
           }
         })
       )

@@ -5,7 +5,11 @@ export type FileUploadResponse = {
   id: string
   path: string
   url: string
+  mimetype: string
+  filename: string
+  uploaded_at: string
 }
+
 // , { name: "fileStorage" }))
 export async function uploadFile(file: File): Promise<never | FileUploadResponse> {
   const res = await fetch("http://localhost:8000/data_sources/upload", {
