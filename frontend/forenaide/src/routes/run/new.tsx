@@ -8,7 +8,7 @@ import FileUpload, {
 	useFileStore,
 } from "./-components/FileUpload";
 // import ConfigUpload from './-components/ConfigUpload'
-import Confirmation from './-components/Confirmation'
+import Confirmation, { CreatePipelineRequest } from './-components/Confirmation'
 import { Combobox } from "@/components/ui/Combobox";
 import { useCombobox } from "@/hooks/useCombobox";
 import { useToast } from "@/hooks/use-toast";
@@ -406,10 +406,11 @@ function PipelineComponent() {
 	]);
 
 	const files = useFileStore((state) => state.files);
-
-	const uploadedFiles = files.filter(
+	const uploadedFiles = React.useMemo(() => files.filter(
 		(file) => file.status === FileStatus.UPLOADED
-	);
+	), [files]);
+
+  const [pipelineRequest, setPipelineRequest] = React.useState<CreatePipelineRequest | null>(null);
 
 	const steps: Step[] = [
 		{
@@ -430,7 +431,7 @@ function PipelineComponent() {
 		},
 		{
 			label: "Confirmation",
-			content: <Confirmation files={uploadedFiles} configFile={configFile} />,
+			content: <Confirmation files={uploadedFiles} configFile={configFile} setPipelineRequest={setPipelineRequest} />,
 			icon: <CheckCircle />,
 		},
 	];

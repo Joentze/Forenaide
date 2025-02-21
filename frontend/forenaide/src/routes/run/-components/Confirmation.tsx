@@ -1,7 +1,8 @@
 import { FileUploadResponse } from "@/lib/uploads"
 import { FileInfo } from "./FileUpload"
+import { useEffect } from "react"
 
-type CreatePipelineRequest = {
+export type CreatePipelineRequest = {
   name: string
   description: string
   strategy_id: string
@@ -13,51 +14,76 @@ type CreatePipelineRequest = {
         name: string
         description: string
         type: string
-        }[]
-      }
+      }[]
     }
+  }
   file_paths: Partial<FileUploadResponse>[]
 }
 
 export default function Confirmation({
   files,
   configFile,
-  template
+  template,
+  setPipelineRequest
 }: {
   files: FileInfo[]
   configFile: File | null
   template?: any[]
+  setPipelineRequest: (request: CreatePipelineRequest) => void
 }) {
 
-  const file_paths: Partial<FileUploadResponse>[] = files.map(file => ({
-    id: file.storageId,
-    path: file.filePath,
-    url: file.downloadUrl,
-    mimetype: file.mimetype,
-    filename: file.filename,
-    uploaded_at: file.uploaded_at
-  }))
+  useEffect(() => {
+    const file_paths: Partial<FileUploadResponse>[] = files.map(file => ({
+        id: file.storageId,
+        path: file.filePath,
+        url: file.downloadUrl,
+        mimetype: file.mimetype,
+        filename: file.filename,
+        uploaded_at: file.uploaded_at
+      }))
 
-  const body: CreatePipelineRequest = {
-    name: "Pipeline",
-    description: "Pipeline description",
-    strategy_id: "1",
-    extraction_schema: {
-      extraction_config: {
-        name: "Extraction Config",
-        description: "Extraction Config description",
-        schema: template ?? []
+      const body: CreatePipelineRequest = {
+        name: "Pipeline",
+        description: "Pipeline description",
+        strategy_id: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
+        extraction_schema: {
+          extraction_config: {
+            name: "Extraction Config",
+            description: "extract the relevant fields for documents",
+            schema: template ?? [{
+              "name": "name",
+              "description": "The name of the product",
+              "type": "string"
+            },
+            {
+              "name": "price",
+              "description": "The price of the product",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "description": "A detailed description of the product",
+              "type": "string"
+            },
+            {
+              "name": "tags",
+              "description": "Tags associated with the product",
+              "type": "array_string",
+              "array_item_description": "each tag associated with the product"
+            }]
+          }
+        },
+        file_paths
       }
-    },
-    file_paths
-  }
+      setPipelineRequest(body)
+  }, [files, configFile, template])
 
-  async function submitPipeline() {
-    await fetch("http://localhost:8000/api/pipelines", {
-      method: "POST",
-      body: JSON.stringify(body)
-    })
-  }
+  // async function submitPipeline() {
+  //   await fetch("http://localhost:8000/api/pipelines", {
+  //     method: "POST",
+  //     body: JSON.stringify(body)
+  //   })
+  // }
 
   return (
     <div>
