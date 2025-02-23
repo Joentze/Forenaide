@@ -92,8 +92,6 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
               description: (e as Error).message,
               variant: "destructive"
           })
-          set(produce(state => { state.files[index].status = FileStatus.UPLOADED }))
-          return;
         };
       }
 

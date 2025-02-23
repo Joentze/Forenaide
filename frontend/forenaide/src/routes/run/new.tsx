@@ -398,7 +398,8 @@ function ConfigUpload({
 }
 
 function PipelineComponent() {
-	const [currentStep, setCurrentStep] = React.useState(0);
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = React.useState(0);
 	const [configFile, setConfigFile] = React.useState<File | null>(null);
 	const [previousConfigs, setPreviousConfigs] = React.useState([
 		{ name: "default.csv", size: 1024 },
@@ -411,6 +412,35 @@ function PipelineComponent() {
 	), [files]);
 
   const [pipelineRequest, setPipelineRequest] = React.useState<CreatePipelineRequest | null>(null);
+  const [isPipelineCreated, setPipelineCreated] = React.useState<boolean>(false);
+
+	async function submitPipeline(pipelineRequest: CreatePipelineRequest | null): Promise<void> {
+    if (!pipelineRequest || typeof pipelineRequest !== "object") {
+      toast({
+				description: "Invalid pipeline",
+				variant: "destructive"
+			})
+      return;
+    }
+
+    const res = await fetch("http://localhost:8000/pipelines", {
+  		method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(pipelineRequest)
+		})
+
+		if (!res.ok) {
+		  toast({
+				description: "Something went wrong creating the pipeline",
+				variant: "destructive"
+			})
+      return;
+		}
+		toast({description: "Pipeline created successfully!"})
+	}
 
 	const steps: Step[] = [
 		{
@@ -431,7 +461,11 @@ function PipelineComponent() {
 		},
 		{
 			label: "Confirmation",
-			content: <Confirmation files={uploadedFiles} configFile={configFile} setPipelineRequest={setPipelineRequest} />,
+      content: <Confirmation
+                  files={uploadedFiles}
+                  configFile={configFile}
+                  setPipelineRequest={setPipelineRequest}
+                  isPipelineCreated={isPipelineCreated} />,
 			icon: <CheckCircle />,
 		},
 	];
@@ -473,7 +507,7 @@ function PipelineComponent() {
 
 			<div className="flex justify-between mt-8">
 				{currentStep > 0 ? (
-					<Button className="btn-secondary" onClick={goToPreviousStep}>
+					<Button className="btn-secondary" onClick={goToPreviousStep} disabled={isPipelineCreated}>
 						Back
 					</Button>
 				) : (
@@ -495,7 +529,12 @@ function PipelineComponent() {
 						Next
 					</Button>
 				) : (
-					<Button className="btn-primary" onClick={() => alert("Success!")}>
+            <Button className="btn-primary"
+                    disabled={isPipelineCreated}
+                    onClick={(e) => {
+                      setPipelineCreated(true);
+                      submitPipeline(pipelineRequest);
+            }}>
 						Finish
 					</Button>
 				)}
