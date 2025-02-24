@@ -3,6 +3,7 @@ import { FileInfo } from "./FileUpload"
 import { useEffect } from "react"
 import { CircleCheck } from "lucide-react"
 import { Link } from "@tanstack/react-router"
+import { SchemaItem } from "./TemplateConfig"
 
 type FilePath = {
   uri?: string
@@ -32,13 +33,15 @@ export type CreatePipelineRequest = {
 export default function Confirmation({
   files,
   configFile,
-  template,
+  templateName="",
+  templateFields,
   setPipelineRequest,
   isPipelineCreated
 }: {
   files: FileInfo[]
   configFile: File | null
-  template?: any[]
+  templateName?: string
+  templateFields?: SchemaItem[]
   setPipelineRequest: (request: CreatePipelineRequest) => void
   isPipelineCreated: boolean
 }) {
@@ -59,7 +62,7 @@ export default function Confirmation({
         extraction_config: {
           name: "Extraction Config",
           description: "extract the relevant fields for documents",
-          schema: template ?? [{
+          schema: templateFields ?? [{
             "name": "name",
             "description": "The name of the product",
             "type": "string"
@@ -85,7 +88,7 @@ export default function Confirmation({
       file_paths
     }
     setPipelineRequest(body)
-  }, [files, configFile, template])
+  }, [files, configFile, templateFields])
 
   // async function submitPipeline() {
   //   await fetch("http://localhost:8000/api/pipelines", {

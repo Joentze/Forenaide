@@ -3,25 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import FileUpload, {
-	FileInfo,
 	FileStatus,
 	useFileStore,
 } from "./-components/FileUpload";
 // import ConfigUpload from './-components/ConfigUpload'
 import Confirmation, { CreatePipelineRequest } from './-components/Confirmation'
-import { Combobox } from "@/components/ui/Combobox";
-import { useCombobox } from "@/hooks/useCombobox";
 import { useToast } from "@/hooks/use-toast";
-import { useDropzone } from "react-dropzone";
 import {
 	File as LRFile,
 	Settings,
 	CheckCircle,
-	Loader2,
-	Trash2,
 } from "lucide-react";
-import { useState } from "react";
-import * as XLSX from "xlsx";
+import TemplateConfig, { SchemaItem } from "./-components/TemplateConfig";
 
 export const Route = createFileRoute("/run/new")({
 	component: PipelineComponent,
@@ -76,326 +69,6 @@ function StageTracker({
 	);
 }
 
-function ConfigUpload({
-	configFile,
-	setConfigFile,
-	previousConfigs,
-}: {
-	configFile: File | null;
-	setConfigFile: React.Dispatch<React.SetStateAction<File | null>>;
-	previousConfigs: { name: string; size: number }[];
-}) {
-	const onDrop = (acceptedFiles: File[]) => {
-		const file = acceptedFiles[0];
-		setConfigFile(file);
-		extractExcelData(file);
-	};
-
-	const { getRootProps, getInputProps } = useDropzone({
-		onDrop,
-		accept: {
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // Accept xlsx files
-		},
-		maxFiles: 1, // Restrict to only one file
-	});
-
-	const combobox = useCombobox("", (value: string) => {
-		if (value == "") return;
-		setConfigFile(new File(["content"], value));
-	});
-
-	const { toast } = useToast();
-
-	const [saveTemplateButtonActive, setSaveTemplateButtonActive] =
-		React.useState<Boolean>(true);
-
-	const [currentTemplates, setCurrentTemplates] = React.useState([]);
-
-	React.useEffect(() => {
-		// Get existing templates
-		retrieveExistingTemplates().then((dbTemplates) => {
-			// Update the combobox selection options
-			const comboboxSelectionOptions = dbTemplates.map((item) => ({
-				label: item.name,
-				value: item.name,
-			}));
-			setCurrentTemplates(comboboxSelectionOptions);
-		});
-	}, []);
-
-	/**
-	 * Sends a GET request to templates endpoint to get all templates
-	 * @returns JSON response of request | null
-	 */
-	const retrieveExistingTemplates = async () => {
-		const get_template_url = "http://127.0.0.1:8000/templates";
-
-		let dataToReturn = null;
-		try {
-			// Fetch
-			const response = await fetch(get_template_url, {
-				method: "GET",
-			});
-
-			if (!response.ok) {
-				throw new Error(`Error: ${response.status} ${response.statusText}`);
-			}
-			// Parse response JSON
-			const data = await response.json();
-
-			// Assign data
-			dataToReturn = data;
-		} catch (error) {
-			console.error("Error retrieving templates:", error);
-		}
-
-		return dataToReturn;
-	};
-
-	/**
-	 * Sends a POST request to templates endpoint to create a new template
-	 * @returns JSON response of request | null
-	 */
-	const saveTemplate = async () => {
-		if (!saveTemplateButtonActive) return null;
-		const create_template_url = "http://127.0.0.1:8000/templates";
-
-		// Need to convert the file into json
-		// ...
-
-		let dataToReturn = null;
-		try {
-			setSaveTemplateButtonActive(false);
-			const response = await fetch(create_template_url, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					name: "Template C",
-					description: "Description for Template C",
-					extraction_schema: {
-						fields: [
-							{ name: "field1", type: "string" },
-							{ name: "field2", type: "integer" },
-						],
-					},
-				}),
-			});
-
-			if (!response.ok) {
-				throw new Error(`Error: ${response.status} ${response.statusText}`);
-			}
-			// Parse response JSON
-			const data = await response.json();
-
-			// Show success
-			toast({
-				title: "Success",
-				description: "Template is saved!",
-			});
-
-			dataToReturn = data;
-		} catch (error) {
-			console.error("Error creating template:", error);
-		}
-
-		// Reset button status
-		setSaveTemplateButtonActive(true);
-		return dataToReturn;
-	};
-
-	const [templateFields, setTemplateFields] = useState([
-		{ name: "", type: "", description: "" },
-	]);
-
-	function extractExcelData(file: File) {
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			const data = new Uint8Array(e.target?.result as ArrayBuffer);
-			const workbook = XLSX.read(data, { type: "array" });
-			const sheetName = workbook.SheetNames[0];
-			const worksheet = workbook.Sheets[sheetName];
-			const rows = XLSX.utils.sheet_to_json<string[]>(worksheet, { header: 1 });
-
-			const extractedFields = [];
-			for (let i = 1; i < rows.length; i++) {
-				const row = rows[i];
-				if (!row[0]) continue;
-				extractedFields.push({
-					name: row[0] || "",
-					type: row[1] || "",
-					description: row[2] || "",
-				});
-			}
-			setTemplateFields(extractedFields);
-		};
-		reader.readAsArrayBuffer(file);
-	}
-
-	const updateTemplateField = (
-		index: number,
-		key: "name" | "type" | "description",
-		value: string
-	) => {
-		const newFields = [...templateFields];
-		newFields[index][key] = value;
-		setTemplateFields(newFields);
-	};
-
-	const removeField = (index: number) => {
-		setTemplateFields((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	return (
-		<div>
-			{!configFile && (
-				<div className="mb-2 mt-6">
-					<h3 className="text-lg font-bold mb-2">
-						Select an Existing Template:
-					</h3>
-					<div>
-						<Combobox options={currentTemplates} comboboxState={combobox} />
-						{/* <p className="mt-4">Selected: {selectedFramework || "None"}</p> */}
-					</div>
-				</div>
-			)}
-
-			{!configFile && (
-				<div className="mb-2 mt-6">
-					<h3 className="text-lg font-bold mb-2">
-						Or Upload a Configuration File
-					</h3>
-					<div
-						{...getRootProps()}
-						className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center transition-all duration-200"
-					>
-						<input {...getInputProps()} />
-						<p className="text-gray-500">
-							Drag & drop configuration file here, or click to select file
-						</p>
-					</div>
-				</div>
-			)}
-
-			{configFile && (
-				<div className="mb-2 mt-6">
-					<h3 className="text-lg font-bold mb-2">
-						Selected Configuration File
-					</h3>
-					<div className="bg-gray-100 p-2 rounded flex justify-between items-center">
-						<span>
-							{configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
-						</span>
-						<Button
-							size="sm"
-							variant="destructive"
-							className="w-20"
-							onClick={() => {
-								combobox.reset();
-								setConfigFile(null);
-								setTemplateFields([{ name: "", type: "", description: "" }]);
-							}}
-						>
-							<Trash2 />
-						</Button>
-					</div>
-				</div>
-			)}
-
-			<div className="mt-6 mb-2">
-				<div className="flex items-center justify-between">
-					{!configFile && (
-						<h3 className="text-lg font-bold">Or Define Template</h3>
-					)}
-					{configFile && (
-						<h3 className="text-lg font-bold">Configuration Fields</h3>
-					)}
-					<div>
-						<Button
-							size="sm"
-							className="btn-primary mr-4"
-							onClick={saveTemplate}
-							disabled={!saveTemplateButtonActive}
-						>
-							{!saveTemplateButtonActive && (
-								<Loader2 className="animate-spin" />
-							)}
-							{saveTemplateButtonActive ? "Save Template" : "Please Wait"}
-						</Button>
-						<Button
-							size="sm"
-							className="btn-secondary"
-							onClick={() =>
-								setTemplateFields((prev) => [
-									...prev,
-									{ name: "", type: "", description: "" },
-								])
-							}
-						>
-							Add New Field
-						</Button>
-					</div>
-				</div>
-				<div className="mt-4 p-4 border rounded bg-gray-50 space-y-4">
-					{templateFields.map((field, index) => (
-						<div key={index} className="flex gap-4 items-end">
-							<div className="flex-1">
-								<label className="block mb-1">Field Name:</label>
-								<input
-									type="text"
-									className="w-full border rounded p-2"
-									value={field.name}
-									onChange={(e) =>
-										updateTemplateField(index, "name", e.target.value)
-									}
-								/>
-							</div>
-							<div className="flex-1">
-								<label className="block mb-1">Field Type:</label>
-								<select
-									className="w-full border rounded p-2"
-									value={field.type}
-									onChange={(e) =>
-										updateTemplateField(index, "type", e.target.value)
-									}
-								>
-									<option value="">Select type</option>
-									<option value="string">String</option>
-									<option value="integer">Integer</option>
-									<option value="boolean">Boolean</option>
-								</select>
-							</div>
-							<div className="flex-1">
-								<label className="block mb-1">Field Description:</label>
-								<input
-									type="text"
-									className="w-full border rounded p-2"
-									value={field.description}
-									onChange={(e) =>
-										updateTemplateField(index, "description", e.target.value)
-									}
-								/>
-							</div>
-							{index > 0 ? (
-								<Button
-									size="sm"
-									variant="destructive"
-									onClick={() => removeField(index)}
-									className="w-20"
-								>
-									<Trash2 />
-								</Button>
-							) : (
-								<div className="w-20" />
-							)}
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
-	);
-}
 
 function PipelineComponent() {
   const { toast } = useToast();
@@ -413,6 +86,8 @@ function PipelineComponent() {
 
   const [pipelineRequest, setPipelineRequest] = React.useState<CreatePipelineRequest | null>(null);
   const [isPipelineCreated, setPipelineCreated] = React.useState<boolean>(false);
+
+  const [templateFields, setTemplateFields] = React.useState<SchemaItem[]>([{name: "", type: "string", description: ""}])
 
 	async function submitPipeline(pipelineRequest: CreatePipelineRequest | null): Promise<void> {
     if (!pipelineRequest || typeof pipelineRequest !== "object") {
@@ -437,10 +112,25 @@ function PipelineComponent() {
 				description: "Something went wrong creating the pipeline",
 				variant: "destructive"
 			})
+			setPipelineCreated(false);
       return;
 		}
 		toast({description: "Pipeline created successfully!"})
 	}
+
+	const validateTemplate = React.useCallback(() => {
+    if (templateFields.length === 0)
+      return false;
+  	for (const item of templateFields) {
+      if (!["string", "integer", "boolean"].includes(item.type))
+        return false;
+
+      if (item.description === "" || item.name === "" || item.type === "")
+        return false
+    }
+
+    return true;
+	}, [templateFields])
 
 	const steps: Step[] = [
 		{
@@ -451,10 +141,12 @@ function PipelineComponent() {
 		{
 			label: "Configuration",
 			content: (
-				<ConfigUpload
+				<TemplateConfig
 					configFile={configFile}
 					setConfigFile={setConfigFile}
 					previousConfigs={previousConfigs}
+					templateFields={templateFields}
+					setTemplateFields={setTemplateFields}
 				/>
 			),
 			icon: <Settings />,
@@ -464,6 +156,7 @@ function PipelineComponent() {
       content: <Confirmation
                   files={uploadedFiles}
                   configFile={configFile}
+                  templateFields={templateFields}
                   setPipelineRequest={setPipelineRequest}
                   isPipelineCreated={isPipelineCreated} />,
 			icon: <CheckCircle />,
@@ -475,7 +168,7 @@ function PipelineComponent() {
 			alert("Please upload at least one file.");
 			return;
 		}
-		if (currentStep === 1 && !configFile) {
+		if (currentStep === 1 && templateFields.length == 0) {
 			alert("Please upload a configuration file.");
 			return;
 		}
@@ -523,7 +216,8 @@ function PipelineComponent() {
 							(currentStep === 0 &&
 								(files.length === 0 ||
 									files.length !== uploadedFiles.length)) ||
-							(currentStep === 1 && !configFile)
+
+							(currentStep === 1 && !validateTemplate())
 						}
 					>
 						Next
@@ -532,7 +226,6 @@ function PipelineComponent() {
             <Button className="btn-primary"
                     disabled={isPipelineCreated}
                     onClick={(e) => {
-                      setPipelineCreated(true);
                       submitPipeline(pipelineRequest);
             }}>
 						Finish
