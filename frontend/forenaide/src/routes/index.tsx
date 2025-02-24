@@ -28,7 +28,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePipelineRequest } from "./run/-components/Confirmation";
-import { SchemaPreview } from "@/components/schema";
+import { FilePreview, SchemaPreview } from "@/components/schema";
 
 type PipelineInfo = CreatePipelineRequest & {
   id: string;
@@ -57,7 +57,16 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
           {pipelines.filter(p => true).map(pipeline => (
             <TableRow key={pipeline.id}>
               <TableCell>{pipeline.id}</TableCell>
-              <TableCell><File /></TableCell>
+
+              <TableCell>
+                <FilePreview files={pipeline.file_paths} trigger={
+                  <Button variant="ghost" className="px-0">
+                    <File />
+                    Hover to see files
+                  </Button>
+                } />
+              </TableCell>
+
               <TableCell>
                 <SchemaPreview schema={pipeline.extraction_schema.extraction_config.schema}
                   trigger={

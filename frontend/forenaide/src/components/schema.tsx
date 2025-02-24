@@ -1,9 +1,8 @@
 import { SchemaItem } from "@/routes/run/-components/TemplateConfig";
-import { Popover } from "./ui/popover";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "./ui/hover-card"
-import { CalendarIcon, Table2 } from "lucide-react";
-import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
+import { FilePath } from "@/routes/run/-components/Confirmation";
+import { filePathToDownloadUrl } from "@/lib/utils";
 
 interface SchemaPreviewProps {
   schema: SchemaItem[];
@@ -33,6 +32,31 @@ export function SchemaPreview({ schema, trigger }: SchemaPreviewProps) {
             </div>
           ))
         }
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+  )
+}
+
+export function FilePreview({ files, trigger }: { files: Partial<FilePath>[], trigger: React.ReactNode }) {
+  return (
+    <HoverCard openDelay={100} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        {trigger}
+      </HoverCardTrigger>
+      <HoverCardContent className="w-80">
+        <p className="">File Preview</p>
+        <Separator className="my-2"/>
+        <div className="flex flex-col items-center gap-4 w-full">
+          {files.map((file, index) => (
+            <div key={index} className="flex items-center content-between gap-4 w-full">
+              <div className="flex-1">
+                <a href={filePathToDownloadUrl(file)} target="_blank" className="hover:underline">
+                <div className="font-medium">{file.filename}</div>
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       </HoverCardContent>
     </HoverCard>

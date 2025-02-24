@@ -5,7 +5,7 @@ import { CircleCheck } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { SchemaItem } from "./TemplateConfig"
 
-type FilePath = {
+export type FilePath = {
   uri?: string
   mimetype: string
   bucket_path: string
