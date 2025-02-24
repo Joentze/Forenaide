@@ -51,7 +51,7 @@ export default function Confirmation({
   useEffect(() => {
     const file_paths: Partial<FilePath>[] = files.map(file => ({
       uri: file.downloadUrl,
-      bucket_path: file.storageId,
+      bucket_path: file.storageId + "/" + file.filename,
       mimetype: file.mimetype,
       filename: file.filename,
     }))

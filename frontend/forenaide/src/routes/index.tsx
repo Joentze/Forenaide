@@ -13,6 +13,7 @@ import {
   CheckCircle,
   FileText,
   Calendar,
+  Table2,
 } from "lucide-react";
 import {
   Table,
@@ -25,13 +26,131 @@ import {
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "@tanstack/react-router";
+import { useToast } from "@/hooks/use-toast";
+import { CreatePipelineRequest } from "./run/-components/Confirmation";
+import { SchemaPreview } from "@/components/schema";
+
+type PipelineInfo = CreatePipelineRequest & {
+  id: string;
+  status: string;
+  started_at: string;
+  completed_at: string;
+}
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
+function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
+  return (
+    <TabsContent value="completed">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">Run No.</TableHead>
+            <TableHead className="w-[100px]">Files</TableHead>
+            <TableHead className="w-[150px]">Extraction Schema</TableHead>
+            <TableHead className="w-[100px]">Download</TableHead>
+            <TableHead className="w-[100px]">Re-Run</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pipelines.filter(p => true).map(pipeline => (
+            <TableRow key={pipeline.id}>
+              <TableCell>{pipeline.id}</TableCell>
+              <TableCell><File /></TableCell>
+              <TableCell>
+                <SchemaPreview schema={pipeline.extraction_schema.extraction_config.schema}
+                  trigger={
+                    <Button variant="ghost" className="px-0">
+                      <Table2/>
+                      Hover to see schema
+                    </Button>
+                  } />
+              </TableCell>
+              <TableCell>
+                <Button><Download /></Button>
+              </TableCell>
+              <TableCell>
+                <Button><Redo2 /></Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TabsContent>
+  )
+}
+
+function InProgressRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
+  return (
+    <TabsContent value="inprogress">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">Run No.</TableHead>
+            <TableHead className="w-[100px]">Files</TableHead>
+            <TableHead className="w-[150px]">Config File</TableHead>
+            <TableHead className="w-[100px]">Download</TableHead>
+            <TableHead className="w-[200px]">Run Progress</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pipelines.filter(p => p.status === 'in_progress').map(pipeline => (
+            <TableRow key={pipeline.id}>
+              <TableCell>{pipeline.id}</TableCell>
+              <TableCell><File /></TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <File />
+                  <span>{pipeline.config_file || 'default.csv'}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button disabled><Download /></Button>
+              </TableCell>
+              <TableCell>
+                <Progress value={pipeline.progress || 0} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TabsContent>
+  )
+}
 
 function HomeComponent() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [pipelineRuns, setPipelineRuns] = React.useState([]);
+
+  React.useEffect(() => {
+    getPipelineRuns().then((pipelines) => {
+      setPipelineRuns(pipelines);
+    });
+  }, [])
+
+  const getPipelineRuns = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/pipelines");
+      if (!res.ok) {
+        throw Error(res.statusText)
+      }
+
+      const pipelines = await res.json()
+      console.log(pipelines)
+
+      return pipelines;
+    }
+
+    catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      }
+      return [];
+    }
+  }
 
   return (
     <div className="flex-1 flex flex-col gap-8 w-full h-full p-10">
@@ -60,88 +179,8 @@ function HomeComponent() {
                       <TabsTrigger value="completed">Completed</TabsTrigger>
                       <TabsTrigger value="inprogress">In-Progress</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="completed">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[100px]">Run No.</TableHead>
-                            <TableHead className="w-[100px]">Files</TableHead>
-                            <TableHead className="w-[150px]">
-                              Config File
-                            </TableHead>
-                            <TableHead className="w-[100px]">
-                              Download
-                            </TableHead>
-                            <TableHead className="w-[100px]">Re-Run</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>1</TableCell>
-                            <TableCell>
-                              <File />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <File />
-                                <span>default.csv</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button>
-                                <Download />
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <Button>
-                                <Redo2 />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </TabsContent>
-                    <TabsContent value="inprogress">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[100px]">Run No.</TableHead>
-                            <TableHead className="w-[100px]">Files</TableHead>
-                            <TableHead className="w-[150px]">
-                              Config File
-                            </TableHead>
-                            <TableHead className="w-[100px]">
-                              Download
-                            </TableHead>
-                            <TableHead className="w-[200px]">
-                              Run Progress
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>2</TableCell>
-                            <TableCell>
-                              <File />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <File />
-                                <span>default.csv</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button disabled>
-                                <Download />
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <Progress value={33} />
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </TabsContent>
+                    <CompletedRuns pipelines={pipelineRuns} />
+                    <InProgressRuns pipelines={pipelineRuns} />
                   </Tabs>
                 </Card>
               </TabsContent>
@@ -164,33 +203,6 @@ function HomeComponent() {
                       <TableCell className="font-medium">Marcus</TableCell>
                       <TableCell>Upload</TableCell>
                       <TableCell>Attribute File</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TabsContent>
-              <TabsContent value="queue">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Run No.</TableHead>
-                      <TableHead className="w-[150px]">File Name</TableHead>
-                      <TableHead className="w-[200px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">Run 2</TableCell>
-                      <TableCell>PDF_Document_1.pdf</TableCell>
-                      <TableCell>
-                        <Progress value={33} />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Run 2</TableCell>
-                      <TableCell>PDF_Document_2.pdf</TableCell>
-                      <TableCell>
-                        <Progress value={0} />
-                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
