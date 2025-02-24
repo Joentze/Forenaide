@@ -15,6 +15,7 @@ export interface FileStore {
   failed: (fileId: string, message: string) => void
   uploaded: (fileId: string, uploadResponse: FileUploadResponse) => void
   removeFile: (fileId: string, toast?: Function) => void
+  clearFiles: () => void
 }
 
 export enum FileStatus {
@@ -29,9 +30,12 @@ export type FileInfo = {
   storageId?: string,
   status: FileStatus,
   message?: string,
+  fileObj: File,
   downloadUrl?: string,
   filePath?: string,
-  fileObj: File
+  mimetype?: string,
+  filename?: string,
+  uploaded_at?: string,
 }
 
 export const useFileStore = create(persist<FileStore>((set, get) => ({
@@ -66,6 +70,9 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
             file.filePath = uploadResponse.path
             file.downloadUrl = uploadResponse.url
             file.storageId = uploadResponse.id
+            file.mimetype = uploadResponse.mimetype
+            file.uploaded_at = uploadResponse.uploaded_at
+            file.filename = uploadResponse.filename
           }
         })
       )
@@ -86,8 +93,6 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
               description: (e as Error).message,
               variant: "destructive"
           })
-          set(produce(state => { state.files[index].status = FileStatus.UPLOADED }))
-          return;
         };
       }
 
@@ -97,6 +102,13 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
           if (index !== -1) {
             state.files.splice(index, 1)
           }
+        })
+      )
+    },
+    clearFiles: () => {
+      set(
+        produce((state: FileStore) => {
+          state.files = []
         })
       )
     }
