@@ -95,7 +95,7 @@ export default function Confirmation({
       }
 
       <div className={ isPipelineCreated ? "opacity-50": ""}>
-        <h3 className="mb-4 text-lg font-bold">Confirmation</h3>
+        {/* <h3 className="mb-4 text-lg font-bold">Confirmation</h3> */}
         <p className="mb-4">Review the details below before proceeding:</p>
         <h4 className="font-semibold mb-2">Selected Files:</h4>
         <ul className="space-y-2">

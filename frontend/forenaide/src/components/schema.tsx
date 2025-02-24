@@ -3,6 +3,7 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from "./ui/hover-card"
 import { Separator } from "./ui/separator";
 import { FilePath } from "@/routes/run/-components/Confirmation";
 import { filePathToDownloadUrl } from "@/lib/utils";
+import { File } from "lucide-react";
 
 interface SchemaPreviewProps {
   schema: SchemaItem[];
@@ -37,6 +38,15 @@ export function SchemaPreview({ schema, trigger }: SchemaPreviewProps) {
     </HoverCard>
   )
 }
+
+// export function FileList({ files }: { files: Partial <FilePath>[] }) {
+//   // A button which preview some of the filenames
+//   return (
+//     <div className="flex flex-col items-center gap-4 w-full">
+
+//     </div>
+//   )
+// }
 
 export function FilePreview({ files, trigger }: { files: Partial<FilePath>[], trigger: React.ReactNode }) {
   return (
