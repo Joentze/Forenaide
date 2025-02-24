@@ -15,6 +15,7 @@ export interface FileStore {
   failed: (fileId: string, message: string) => void
   uploaded: (fileId: string, uploadResponse: FileUploadResponse) => void
   removeFile: (fileId: string, toast?: Function) => void
+  clearFiles: () => void
 }
 
 export enum FileStatus {
@@ -101,6 +102,13 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
           if (index !== -1) {
             state.files.splice(index, 1)
           }
+        })
+      )
+    },
+    clearFiles: () => {
+      set(
+        produce((state: FileStore) => {
+          state.files = []
         })
       )
     }

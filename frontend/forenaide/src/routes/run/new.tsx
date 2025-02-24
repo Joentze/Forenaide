@@ -80,6 +80,7 @@ function PipelineComponent() {
 	]);
 
 	const files = useFileStore((state) => state.files);
+	const clearFiles = useFileStore((state) => state.clearFiles);
 	const uploadedFiles = React.useMemo(() => files.filter(
 		(file) => file.status === FileStatus.UPLOADED
 	), [files]);
@@ -115,6 +116,8 @@ function PipelineComponent() {
 			setPipelineCreated(false);
       return;
 		}
+		setPipelineCreated(true);
+    clearFiles();
 		toast({description: "Pipeline created successfully!"})
 	}
 

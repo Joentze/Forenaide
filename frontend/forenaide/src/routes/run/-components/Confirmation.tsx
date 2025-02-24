@@ -1,6 +1,6 @@
 import { FileUploadResponse } from "@/lib/uploads"
 import { FileInfo } from "./FileUpload"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { CircleCheck } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { SchemaItem } from "./TemplateConfig"
@@ -46,6 +46,8 @@ export default function Confirmation({
   isPipelineCreated: boolean
 }) {
 
+  const [oldFiles, setOldFiles] = useState<FileInfo[]>([])
+
   useEffect(() => {
     const file_paths: Partial<FilePath>[] = files.map(file => ({
       uri: file.downloadUrl,
@@ -62,32 +64,15 @@ export default function Confirmation({
         extraction_config: {
           name: "Extraction Config",
           description: "extract the relevant fields for documents",
-          schema: templateFields ?? [{
-            "name": "name",
-            "description": "The name of the product",
-            "type": "string"
-          },
-          {
-            "name": "price",
-            "description": "The price of the product",
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "description": "A detailed description of the product",
-            "type": "string"
-          },
-          {
-            "name": "tags",
-            "description": "Tags associated with the product",
-            "type": "array_string",
-            "array_item_description": "each tag associated with the product"
-          }]
+          schema: templateFields ?? []
         }
       },
       file_paths
     }
     setPipelineRequest(body)
+    if (files.length > 0)
+      setOldFiles(files)
+
   }, [files, configFile, templateFields])
 
   // async function submitPipeline() {
@@ -114,19 +99,34 @@ export default function Confirmation({
         <p className="mb-4">Review the details below before proceeding:</p>
         <h4 className="font-semibold mb-2">Selected Files:</h4>
         <ul className="space-y-2">
-          {files.map((file, index) => (
+          {oldFiles.map((file, index) => (
             <li key={index} className="bg-gray-100 p-2 rounded">
               {file.fileObj.name} ({(file.fileObj.size / 1024).toFixed(2)} KB)
             </li>
           ))}
         </ul>
-        {configFile && (
+        {/* {configFile && (
           <>
             <h4 className="font-semibold mt-4 mb-2">Configuration File:</h4>
             <div className="bg-gray-100 p-2 rounded">
               {configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
             </div>
           </>
+        )} */}
+
+        {templateFields && (
+          <div className="mt-4">
+            <h4 className="font-semibold mb-2">Extraction Schema:</h4>
+            <ul className="space-y-2">
+              {templateFields.map((field, index) => (
+                <li key={index} className="bg-gray-100 p-2 rounded">
+                  <span className="font-semibold">{field.name} </span>
+                  ({field.type})
+                  <span className="text-sm opacity-50"> {field.description}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </>
