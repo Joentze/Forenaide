@@ -28,7 +28,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePipelineRequest } from "./run/-components/Confirmation";
-import { FilePreview, SchemaPreview } from "@/components/schema";
+import { FileListPreview, FilePreview, SchemaPreview } from "@/components/schema";
 
 type PipelineInfo = CreatePipelineRequest & {
   id: string;
@@ -235,17 +235,17 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Run No.</TableHead>
-          <TableHead className="w-[100px]">Started</TableHead>
-          <TableHead className="w-[100px]">Files</TableHead>
-          <TableHead className="w-[150px]">Template</TableHead>
-          <TableHead className="w-[200px]">Status</TableHead>
+          <TableHead className="w-[400px]">Run No.</TableHead>
+          <TableHead className="w-[200px]">Started</TableHead>
+          <TableHead className="w-[600px]">Files</TableHead>
+          <TableHead className="w-[200px]">Template</TableHead>
+          <TableHead className="">Percentage</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {pipelines.map(pipeline => (
           <TableRow key={pipeline.id}>
-            <TableCell>{pipeline.id}</TableCell>
+            <TableCell><span className="font-semibold">{pipeline.id}</span></TableCell>
 
             <TableCell>
               <p>{new Date(pipeline.started_at).toLocaleString()}</p>
@@ -253,9 +253,8 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
 
             <TableCell>
               <FilePreview files={pipeline.file_paths} trigger={
-                <Button variant="ghost" className="px-0">
-                  <File />
-                  Hover to see files
+                <Button variant="ghost" className="px-0 m-0">
+                  <FileListPreview files={pipeline.file_paths}/>
                 </Button>
               } />
             </TableCell>

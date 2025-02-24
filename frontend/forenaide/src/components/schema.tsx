@@ -16,7 +16,7 @@ export function SchemaPreview({ schema, trigger }: SchemaPreviewProps) {
       <HoverCardTrigger asChild>
         {trigger}
       </HoverCardTrigger>
-      <HoverCardContent className="w-80">
+      <HoverCardContent className="w-80" side="left">
         <p className="">Extraction Schema</p>
         <Separator className="my-2"/>
         <div className="flex flex-col items-center gap-4 w-full">
@@ -39,14 +39,26 @@ export function SchemaPreview({ schema, trigger }: SchemaPreviewProps) {
   )
 }
 
-// export function FileList({ files }: { files: Partial <FilePath>[] }) {
-//   // A button which preview some of the filenames
-//   return (
-//     <div className="flex flex-col items-center gap-4 w-full">
-
-//     </div>
-//   )
-// }
+export function FileListPreview({ files }: { files: Partial <FilePath>[] }) {
+  // A button which preview some of the filenames
+  return (
+    <section className="flex flex-row items-center gap-2 truncate max-w-[500px]">
+      <File/>
+      <div className="flex gap-2 truncate">
+        {files.slice(0, 2).map(f => (
+          <span key={f.filename} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 max-w-[10rem] truncate">
+            {f.filename}
+          </span>
+        ))}
+        { files.length > 2 &&
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 max-w-[10rem] truncate">
+              + {files.length - 2} more
+          </span>
+        }
+      </div>
+    </section>
+  )
+}
 
 export function FilePreview({ files, trigger }: { files: Partial<FilePath>[], trigger: React.ReactNode }) {
   return (
@@ -54,7 +66,7 @@ export function FilePreview({ files, trigger }: { files: Partial<FilePath>[], tr
       <HoverCardTrigger asChild>
         {trigger}
       </HoverCardTrigger>
-      <HoverCardContent className="w-80">
+      <HoverCardContent className="w-80" side="bottom">
         <p className="">File Preview</p>
         <Separator className="my-2"/>
         <div className="flex flex-col items-center gap-4 w-full">
