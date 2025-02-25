@@ -13,6 +13,7 @@ import {
   CheckCircle,
   FileText,
   Calendar,
+  Table2,
 } from "lucide-react";
 import {
   Table,
@@ -25,6 +26,23 @@ import {
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "@tanstack/react-router";
+import { useToast } from "@/hooks/use-toast";
+import { CreatePipelineRequest } from "./run/-components/Confirmation";
+import { FileListPreview, FilePreview, SchemaPreview } from "@/components/schema";
+
+type PipelineInfo = CreatePipelineRequest & {
+  id: string;
+  status: string;
+  started_at: string;
+  completed_at: string;
+}
+
+enum Mode {
+  IN_PROGRESS = "inprogress",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  NOT_STARTED = "not_started"
+}
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -32,10 +50,40 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [pipelineRuns, setPipelineRuns] = React.useState<PipelineInfo[]>([]);
+
+  React.useEffect(() => {
+    getPipelineRuns().then((pipelines) => {
+      setPipelineRuns(pipelines);
+    });
+  }, [])
+
+  const getPipelineRuns = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/pipelines");
+      if (!res.ok) {
+        throw Error(res.statusText)
+      }
+
+      const pipelines: PipelineInfo[] = await res.json()
+      console.log(pipelines)
+
+      return pipelines.sort((a, b) => -a.started_at.localeCompare(b.started_at));
+    }
+
+    catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      }
+      return [];
+    }
+  }
 
   return (
     <div className="flex-1 flex flex-col gap-8 w-full h-full p-10">
-      <div className="border p-8 flex flex-col items-center gap-8 w-full h-full">
+      <div className="p-8 flex flex-col items-center gap-8 w-full h-full">
         <Card className="w-full h-full">
           <Tabs defaultValue="results">
             <CardHeader>
@@ -44,7 +92,6 @@ function HomeComponent() {
                 <TabsList>
                   <TabsTrigger value="results">Runs</TabsTrigger>
                   <TabsTrigger value="log">Activity Log</TabsTrigger>
-                  <TabsTrigger value="queue">Processing Queue</TabsTrigger>
                 </TabsList>
                 <Button onClick={() => navigate({ to: "/run/new" })}>
                   <Plus />
@@ -59,88 +106,16 @@ function HomeComponent() {
                     <TabsList>
                       <TabsTrigger value="completed">Completed</TabsTrigger>
                       <TabsTrigger value="inprogress">In-Progress</TabsTrigger>
+                      <TabsTrigger value="failed">Failed</TabsTrigger>
                     </TabsList>
                     <TabsContent value="completed">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[100px]">Run No.</TableHead>
-                            <TableHead className="w-[100px]">Files</TableHead>
-                            <TableHead className="w-[150px]">
-                              Config File
-                            </TableHead>
-                            <TableHead className="w-[100px]">
-                              Download
-                            </TableHead>
-                            <TableHead className="w-[100px]">Re-Run</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>1</TableCell>
-                            <TableCell>
-                              <File />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <File />
-                                <span>default.csv</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button>
-                                <Download />
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <Button>
-                                <Redo2 />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                      <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED)} />
                     </TabsContent>
                     <TabsContent value="inprogress">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[100px]">Run No.</TableHead>
-                            <TableHead className="w-[100px]">Files</TableHead>
-                            <TableHead className="w-[150px]">
-                              Config File
-                            </TableHead>
-                            <TableHead className="w-[100px]">
-                              Download
-                            </TableHead>
-                            <TableHead className="w-[200px]">
-                              Run Progress
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell>2</TableCell>
-                            <TableCell>
-                              <File />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <File />
-                                <span>default.csv</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button disabled>
-                                <Download />
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <Progress value={33} />
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS || Mode.NOT_STARTED)} mode={Mode.IN_PROGRESS} />
+                    </TabsContent>
+                    <TabsContent value="failed">
+                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.FAILED)} mode={Mode.FAILED} />
                     </TabsContent>
                   </Tabs>
                 </Card>
@@ -168,38 +143,11 @@ function HomeComponent() {
                   </TableBody>
                 </Table>
               </TabsContent>
-              <TabsContent value="queue">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Run No.</TableHead>
-                      <TableHead className="w-[150px]">File Name</TableHead>
-                      <TableHead className="w-[200px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">Run 2</TableCell>
-                      <TableCell>PDF_Document_1.pdf</TableCell>
-                      <TableCell>
-                        <Progress value={33} />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Run 2</TableCell>
-                      <TableCell>PDF_Document_2.pdf</TableCell>
-                      <TableCell>
-                        <Progress value={0} />
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TabsContent>
             </CardContent>
           </Tabs>
         </Card>
 
-        <Card className="w-full h-full">
+        {/* <Card className="w-full h-full">
           <CardHeader>
             <CardTitle>Most Recent Run</CardTitle>
           </CardHeader>
@@ -223,8 +171,119 @@ function HomeComponent() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
+}
+
+function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[400px]">Run No.</TableHead>
+          <TableHead className="w-[200px]">Started</TableHead>
+          <TableHead className="w-[600px]">Files</TableHead>
+          <TableHead className="w-[250px]">Template</TableHead>
+          <TableHead className="">Download Output</TableHead>
+          <TableHead className="">Re-Run</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {pipelines.map(pipeline => (
+          <TableRow key={pipeline.id}>
+            <TableCell>
+              <section className="flex flex-col">
+                <span className="font-semibold">{pipeline.name}</span>
+                <span className="text-gray-500 text-xs">{pipeline.id}</span>
+              </section>
+            </TableCell>
+
+            <TableCell>
+              <p>{new Date(pipeline.started_at).toLocaleString()}</p>
+            </TableCell>
+
+            <TableCell>
+              <FilePreview files={pipeline.file_paths} trigger={
+                <Button variant="ghost" className="px-0 m-0">
+                  <FileListPreview files={pipeline.file_paths}/>
+                </Button>
+              } />
+            </TableCell>
+
+            <TableCell>
+              <SchemaPreview schema={pipeline.extraction_schema.extraction_config.schema}
+                trigger={
+                  <Button variant="ghost" className="px-0">
+                    <Table2 />
+                    Hover to see schema
+                  </Button>
+                } />
+            </TableCell>
+            <TableCell>
+              <Button><Download /></Button>
+            </TableCell>
+            <TableCell>
+              <Button><Redo2 /></Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: PipelineInfo[], mode: Mode }) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[400px]">Run No.</TableHead>
+          <TableHead className="w-[200px]">Started</TableHead>
+          <TableHead className="w-[600px]">Files</TableHead>
+          <TableHead className="w-[250px]">Template</TableHead>
+          <TableHead className="">Percentage</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {pipelines.map(pipeline => (
+          <TableRow key={pipeline.id}>
+            <TableCell>
+              <section className="flex flex-col">
+                <span className="font-semibold">{pipeline.name}</span>
+                <span className="text-gray-500 text-xs">{pipeline.id}</span>
+              </section>
+            </TableCell>
+
+            <TableCell>
+              <p>{new Date(pipeline.started_at).toLocaleString()}</p>
+            </TableCell>
+
+            <TableCell>
+              <FilePreview files={pipeline.file_paths} trigger={
+                <Button variant="ghost" className="px-0 m-0">
+                  <FileListPreview files={pipeline.file_paths}/>
+                </Button>
+              } />
+            </TableCell>
+
+            <TableCell>
+              <SchemaPreview schema={pipeline.extraction_schema.extraction_config.schema}
+                trigger={
+                  <Button variant="ghost" className="px-0">
+                    <Table2 />
+                    Hover to see schema
+                  </Button>
+                } />
+            </TableCell>
+            <TableCell>
+              {mode == Mode.IN_PROGRESS && <Progress value={33} />}
+              {mode == Mode.FAILED && <CheckCircle />}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
 }

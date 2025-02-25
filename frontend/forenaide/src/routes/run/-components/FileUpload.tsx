@@ -4,7 +4,7 @@ import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning, F
 import { create, StoreApi, UseBoundStore } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { produce, enableMapSet } from "immer"
-import { cn } from "@/lib/utils"
+import { cn, filePathToDownloadUrl } from "@/lib/utils"
 import { FileUploadResponse, jsonStorage, uploadFile } from "../../../lib/uploads"
 import { useToast } from "@/hooks/use-toast"
 
@@ -193,12 +193,14 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
                 className={cn("flex justify-between items-center border p-4 rounded transition-all", file.status == FileStatus.FAILED && "bg-red-100", file.status == FileStatus.REMOVING && "opacity-15")}
               >
                 <div className="flex justify-between items-center gap-3">
-                  <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
-                    {(file.status == FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
-                      || (file.status == FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
-                      || (file.status == FileStatus.FAILED) && <FileWarning size={30} />
-                    }
-                  </figure>
+                  <a href={filePathToDownloadUrl(file.filePath)} target="_blank">
+                    <figure className={cn("h-14 aspect-square border border-black border-opacity-15 rounded-md p-2 flex items-center justify-center")}>
+                      {(file.status == FileStatus.UPLOADING && <LoaderCircle className="animate-spin text-xl" size={30} />)
+                        || (file.status == FileStatus.UPLOADED && <FileIcon className="text-secondary-foreground" size={30} />)
+                        || (file.status == FileStatus.FAILED) && <FileWarning size={30} />
+                      }
+                    </figure>
+                  </a>
                   <section className="flex flex-col">
                     {file.fileObj.name}
                     <p className={cn("mt-0.5 opacity-60 text-sm"

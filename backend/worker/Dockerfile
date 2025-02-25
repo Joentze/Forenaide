@@ -1,8 +1,8 @@
 # TODO: find a way to reduce the size of docker container
 
 FROM python:3.12
- 
- 
+
+
 COPY requirements.txt /requirements.txt
 
 # Download the latest installer
@@ -14,7 +14,7 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 ENV PATH="/root/.local/bin/:$PATH"
 
 RUN uv pip install --system --no-cache -r requirements.txt
- 
+
 RUN apt-get update && apt-get install -y \
     wget \
     tar \
@@ -45,6 +45,8 @@ RUN wget https://poppler.freedesktop.org/poppler-21.09.0.tar.xz \
     && make \
     && make install
 
+WORKDIR /worker
+
 COPY . .
- 
+
 CMD ["python", "main.py"]

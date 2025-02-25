@@ -1,11 +1,13 @@
 import { FileUploadResponse } from "@/lib/uploads"
 import { FileInfo } from "./FileUpload"
-import { useEffect, useState } from "react"
+import { Ref, useEffect, useState } from "react"
 import { CircleCheck } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { SchemaItem } from "./TemplateConfig"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-type FilePath = {
+export type FilePath = {
   uri?: string
   mimetype: string
   bucket_path: string
@@ -33,17 +35,21 @@ export type CreatePipelineRequest = {
 export default function Confirmation({
   files,
   configFile,
-  templateName="",
+  templateName = "",
   templateFields,
+  pipelineRequest,
   setPipelineRequest,
-  isPipelineCreated
+  isPipelineCreated,
+  formRef
 }: {
   files: FileInfo[]
   configFile: File | null
   templateName?: string
   templateFields?: SchemaItem[]
+  pipelineRequest: CreatePipelineRequest | null,
   setPipelineRequest: (request: CreatePipelineRequest) => void
   isPipelineCreated: boolean
+  formRef: Ref<HTMLFormElement>
 }) {
 
   const [oldFiles, setOldFiles] = useState<FileInfo[]>([])
@@ -51,18 +57,18 @@ export default function Confirmation({
   useEffect(() => {
     const file_paths: Partial<FilePath>[] = files.map(file => ({
       uri: file.downloadUrl,
-      bucket_path: file.storageId,
+      bucket_path: file.filePath,
       mimetype: file.mimetype,
       filename: file.filename,
     }))
 
     const body: CreatePipelineRequest = {
-      name: "Pipeline",
+      name: "",
       description: "Pipeline description",
       strategy_id: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
       extraction_schema: {
         extraction_config: {
-          name: "Extraction Config",
+          name: "extraction_tool",
           description: "extract the relevant fields for documents",
           schema: templateFields ?? []
         }
@@ -94,9 +100,16 @@ export default function Confirmation({
         </div>)
       }
 
-      <div className={ isPipelineCreated ? "opacity-50": ""}>
-        <h3 className="mb-4 text-lg font-bold">Confirmation</h3>
+      <div className={isPipelineCreated ? "opacity-50" : ""}>
+        {/* <h3 className="mb-4 text-lg font-bold">Confirmation</h3> */}
         <p className="mb-4">Review the details below before proceeding:</p>
+      <section className="flex flex-col gap-2 items-start">
+          <h4 className="font-semibold mb-2">Name the pipeline:</h4>
+          <form ref={formRef}>
+            <Input type="text" placeholder="Pipeline for ..." name="pipelineName"
+              className="w-80 mb-3" value={pipelineRequest?.name ?? ""} onChange={(e) => setPipelineRequest({...pipelineRequest, name: e.target.value})} required></Input>
+          </form>
+        </section>
         <h4 className="font-semibold mb-2">Selected Files:</h4>
         <ul className="space-y-2">
           {oldFiles.map((file, index) => (

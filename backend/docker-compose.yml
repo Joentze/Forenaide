@@ -37,6 +37,8 @@ services:
     depends_on:
       - rabbitmq
     restart: always
+    volumes:
+      - "./worker:/worker"
 
   api:
     build:
@@ -45,7 +47,7 @@ services:
     container_name: api
     ports:
       - "8000:8000" # FastAPI server port
-      
+
     volumes:
         - "./api:/api"
     env_file:
