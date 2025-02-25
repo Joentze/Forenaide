@@ -60,10 +60,10 @@ function HomeComponent() {
         throw Error(res.statusText)
       }
 
-      const pipelines = await res.json()
+      const pipelines: PipelineInfo[] = await res.json()
       console.log(pipelines)
 
-      return pipelines;
+      return pipelines.sort((a, b) => -a.started_at.localeCompare(b.started_at));
     }
 
     catch (e) {
@@ -102,7 +102,7 @@ function HomeComponent() {
                       <TabsTrigger value="failed">Failed</TabsTrigger>
                     </TabsList>
                     <TabsContent value="completed">
-                      <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED)} />
+                      <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED || true)} />
                     </TabsContent>
                     <TabsContent value="inprogress">
                       <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS || Mode.NOT_STARTED)} mode={Mode.IN_PROGRESS} />
@@ -175,30 +175,34 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Run No.</TableHead>
-          <TableHead className="w-[100px]">Started</TableHead>
-          <TableHead className="w-[100px]">Files</TableHead>
-          <TableHead className="w-[150px]">Extraction Schema</TableHead>
-          <TableHead className="w-[100px]">Download</TableHead>
-          <TableHead className="w-[100px]">Re-Run</TableHead>
+          <TableHead className="w-[400px]">Run No.</TableHead>
+          <TableHead className="w-[200px]">Started</TableHead>
+          <TableHead className="w-[600px]">Files</TableHead>
+          <TableHead className="w-[250px]">Template</TableHead>
+          <TableHead className="">Download Output</TableHead>
+          <TableHead className="">Re-Run</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {pipelines.filter(p => p.status == "completed").map(pipeline => (
+        {pipelines.map(pipeline => (
           <TableRow key={pipeline.id}>
-            <TableCell>{pipeline.id}</TableCell>
-
             <TableCell>
-              <FilePreview files={pipeline.file_paths} trigger={
-                <Button variant="ghost" className="px-0">
-                  <File />
-                  Hover to see files
-                </Button>
-              } />
+              <section className="flex flex-col">
+                <span className="font-semibold">{pipeline.name}</span>
+                <span className="text-gray-500 text-xs">{pipeline.id}</span>
+              </section>
             </TableCell>
 
             <TableCell>
-              <p>{pipeline.started_at}</p>
+              <p>{new Date(pipeline.started_at).toLocaleString()}</p>
+            </TableCell>
+
+            <TableCell>
+              <FilePreview files={pipeline.file_paths} trigger={
+                <Button variant="ghost" className="px-0 m-0">
+                  <FileListPreview files={pipeline.file_paths}/>
+                </Button>
+              } />
             </TableCell>
 
             <TableCell>

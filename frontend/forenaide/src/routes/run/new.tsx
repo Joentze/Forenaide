@@ -89,6 +89,7 @@ function PipelineComponent() {
   const [isPipelineCreated, setPipelineCreated] = React.useState<boolean>(false);
 
   const [templateFields, setTemplateFields] = React.useState<SchemaItem[]>([{name: "", type: "string", description: ""}])
+  const formRef = React.useRef<HTMLFormElement>(null);
 
 	async function submitPipeline(pipelineRequest: CreatePipelineRequest | null): Promise<void> {
     if (!pipelineRequest || typeof pipelineRequest !== "object") {
@@ -160,7 +161,9 @@ function PipelineComponent() {
                   files={uploadedFiles}
                   configFile={configFile}
                   templateFields={templateFields}
+                  pipelineRequest={pipelineRequest}
                   setPipelineRequest={setPipelineRequest}
+                  formRef={formRef}
                   isPipelineCreated={isPipelineCreated} />,
 			icon: <CheckCircle />,
 		},
@@ -229,7 +232,10 @@ function PipelineComponent() {
             <Button className="btn-primary"
                     disabled={isPipelineCreated}
                     onClick={(e) => {
-                      submitPipeline(pipelineRequest);
+                      formRef.current?.reportValidity();
+                      if (formRef.current?.checkValidity()) {
+                        submitPipeline(pipelineRequest)
+                      }
             }}>
 						Finish
 					</Button>
