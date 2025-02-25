@@ -73,7 +73,7 @@ export function FilePreview({ files, trigger }: { files: Partial<FilePath>[], tr
           {files.map((file, index) => (
             <div key={index} className="flex items-center content-between gap-4 w-full">
               <div className="flex-1">
-                <a href={filePathToDownloadUrl(file)} target="_blank" className="hover:underline">
+                <a href={filePathToDownloadUrl(file.bucket_path)} target="_blank" className="hover:underline">
                 <div className="font-medium">{file.filename}</div>
                 </a>
               </div>

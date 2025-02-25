@@ -57,7 +57,7 @@ export default function Confirmation({
   useEffect(() => {
     const file_paths: Partial<FilePath>[] = files.map(file => ({
       uri: file.downloadUrl,
-      bucket_path: file.storageId + "/" + file.filename,
+      bucket_path: file.filePath,
       mimetype: file.mimetype,
       filename: file.filename,
     }))
@@ -68,7 +68,7 @@ export default function Confirmation({
       strategy_id: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
       extraction_schema: {
         extraction_config: {
-          name: "Extraction Config",
+          name: "extraction_tool",
           description: "extract the relevant fields for documents",
           schema: templateFields ?? []
         }

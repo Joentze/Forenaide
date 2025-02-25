@@ -37,6 +37,13 @@ type PipelineInfo = CreatePipelineRequest & {
   completed_at: string;
 }
 
+enum Mode {
+  IN_PROGRESS = "inprogress",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  NOT_STARTED = "not_started"
+}
+
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
@@ -102,7 +109,7 @@ function HomeComponent() {
                       <TabsTrigger value="failed">Failed</TabsTrigger>
                     </TabsList>
                     <TabsContent value="completed">
-                      <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED || true)} />
+                      <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED)} />
                     </TabsContent>
                     <TabsContent value="inprogress">
                       <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS || Mode.NOT_STARTED)} mode={Mode.IN_PROGRESS} />
@@ -227,13 +234,6 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
   )
 }
 
-enum Mode {
-  IN_PROGRESS = "inprogress",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  NOT_STARTED = "not_started"
-}
-
 function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: PipelineInfo[], mode: Mode }) {
   return (
     <Table>
@@ -242,14 +242,19 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
           <TableHead className="w-[400px]">Run No.</TableHead>
           <TableHead className="w-[200px]">Started</TableHead>
           <TableHead className="w-[600px]">Files</TableHead>
-          <TableHead className="w-[200px]">Template</TableHead>
+          <TableHead className="w-[250px]">Template</TableHead>
           <TableHead className="">Percentage</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {pipelines.map(pipeline => (
           <TableRow key={pipeline.id}>
-            <TableCell><span className="font-semibold">{pipeline.id}</span></TableCell>
+            <TableCell>
+              <section className="flex flex-col">
+                <span className="font-semibold">{pipeline.name}</span>
+                <span className="text-gray-500 text-xs">{pipeline.id}</span>
+              </section>
+            </TableCell>
 
             <TableCell>
               <p>{new Date(pipeline.started_at).toLocaleString()}</p>
