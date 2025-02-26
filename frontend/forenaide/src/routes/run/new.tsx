@@ -129,6 +129,9 @@ function PipelineComponent() {
       if (!["string", "integer", "boolean"].includes(item.type))
         return false;
 
+      if (item.description === undefined || item.name == undefined || item.type === undefined)
+        return false
+
       if (item.description === "" || item.name === "" || item.type === "")
         return false
     }

@@ -112,7 +112,7 @@ function HomeComponent() {
                       <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED)} />
                     </TabsContent>
                     <TabsContent value="inprogress">
-                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS || Mode.NOT_STARTED)} mode={Mode.IN_PROGRESS} />
+                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS)} mode={Mode.IN_PROGRESS} />
                     </TabsContent>
                     <TabsContent value="failed">
                       <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.FAILED)} mode={Mode.FAILED} />
