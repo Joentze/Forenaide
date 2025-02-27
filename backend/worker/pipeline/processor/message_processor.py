@@ -62,7 +62,7 @@ class MessageProcessor:
 
             # write to csv
             csv_string = self.dicts_to_csv_bytes(instances)
-            print(65, csv_string)
+
             response = await self.client.storage.from_(self.outputs_bucket_name).upload(
                 path=f"csv/{pipeline_message.id}.csv",
                 file=csv_string.encode('utf-8'),
@@ -72,7 +72,7 @@ class MessageProcessor:
 
             return {"instances": instances}
         except Exception as e:
-            print("75, error", e)
+
             await self.client.from_(self.pipeline_runs_table_name).update({"status": "failed"}).eq("id", str(pipeline_message.id)).execute()
         finally:
             await self.client.postgrest.aclose()
