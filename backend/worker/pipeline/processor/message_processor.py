@@ -1,3 +1,4 @@
+import csv
 import asyncio
 import io
 import json
@@ -59,8 +60,19 @@ class MessageProcessor:
 
             await self.client.from_(self.pipeline_runs_table_name).update({"status": "completed"}).eq("id", str(pipeline_message.id)).execute()
 
+            # write to csv
+            csv_string = self.dicts_to_csv_bytes(instances)
+            print(65, csv_string)
+            response = await self.client.storage.from_(self.outputs_bucket_name).upload(
+                path=f"csv/{pipeline_message.id}.csv",
+                file=csv_string.encode('utf-8'),
+                file_options={"cache-control": "3600",
+                              "upsert": "false"}
+            )
+
             return {"instances": instances}
-        except:
+        except Exception as e:
+            print("75, error", e)
             await self.client.from_(self.pipeline_runs_table_name).update({"status": "failed"}).eq("id", str(pipeline_message.id)).execute()
         finally:
             await self.client.postgrest.aclose()
@@ -104,3 +116,35 @@ class MessageProcessor:
         if len(response.data) == 0:
             raise ValueError("strategy does not exists")
         return response.data[0]["strategy"]
+
+    def dicts_to_csv_bytes(self, dict_list) -> str:
+        """
+        Convert a list of dictionaries to CSV format and return as bytes.
+
+        Args:
+            dict_list: A list of dictionaries where each dictionary represents a row
+
+        Returns:
+            bytes: The CSV content as bytes
+        """
+        if not dict_list or len(dict_list) == 0:
+            return b''
+
+        # Create a StringIO object to write the CSV data
+        output = io.StringIO()
+
+        # Get fieldnames from the first dictionary
+        fieldnames = dict_list[0].keys()
+
+        # Create a CSV writer that will write to our StringIO object
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+
+        # Write the header row
+        writer.writeheader()
+
+        # Write all the dictionaries as rows
+        writer.writerows(dict_list)
+
+        # Get the string data and encode to bytes
+        csv_string = output.getvalue()
+        return csv_string
