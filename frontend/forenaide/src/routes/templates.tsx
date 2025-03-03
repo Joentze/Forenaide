@@ -533,7 +533,6 @@ function TemplatesComponent() {
 										<TableCell>
 											<div className="flex gap-2">
 												<Button
-													className="btn-primary"
 													size="sm"
 													variant="outline"
 													onClick={() => handleViewTemplate(template)}
