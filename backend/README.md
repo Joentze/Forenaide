@@ -10,7 +10,7 @@
 - Navigate to `backend` directory
 - Start Docker daemon
 - Run `supabase start` or `npx supabase start`
-- Copy over values of `API URL` and `anon key` over to a `.env` file under /api
+- Copy over values of `API URL` and `anon key` over to a `.env` file under /backend
 
 ### Additional Commands
 

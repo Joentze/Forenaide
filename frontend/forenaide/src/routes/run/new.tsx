@@ -178,7 +178,7 @@ function PipelineComponent() {
 			return;
 		}
 		if (currentStep === 1 && templateFields.length == 0) {
-			alert("Please upload a configuration file.");
+			alert("Please upload a template file.");
 			return;
 		}
 		if (currentStep < steps.length - 1) {
