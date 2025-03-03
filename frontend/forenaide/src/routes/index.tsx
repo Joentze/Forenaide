@@ -178,6 +178,47 @@ function HomeComponent() {
 }
 
 function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
+  const { toast } = useToast();
+
+  const downloadCSV = async (pipelineId: string) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/outputs/download/csv/" + pipelineId, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        toast({
+          description: "Download failed",
+          variant: "destructive"
+        })
+        return;
+      }
+
+      const blob = await response.blob();
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute(
+        'download',
+        `${pipelineId}-Output.csv`,
+      );
+
+      // Append to html link element page
+      document.body.appendChild(link);
+
+      // Start download
+      link.click();
+
+      // Clean up and remove the link
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -207,7 +248,7 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
             <TableCell>
               <FilePreview files={pipeline.file_paths} trigger={
                 <Button variant="ghost" className="px-0 m-0">
-                  <FileListPreview files={pipeline.file_paths}/>
+                  <FileListPreview files={pipeline.file_paths} />
                 </Button>
               } />
             </TableCell>
@@ -222,7 +263,9 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
                 } />
             </TableCell>
             <TableCell>
-              <Button><Download /></Button>
+              <Button onClick={() => downloadCSV(pipeline.id)}>
+                <Download />
+              </Button>
             </TableCell>
             <TableCell>
               <Button><Redo2 /></Button>
@@ -263,7 +306,7 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
             <TableCell>
               <FilePreview files={pipeline.file_paths} trigger={
                 <Button variant="ghost" className="px-0 m-0">
-                  <FileListPreview files={pipeline.file_paths}/>
+                  <FileListPreview files={pipeline.file_paths} />
                 </Button>
               } />
             </TableCell>
