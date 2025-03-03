@@ -36,6 +36,7 @@ export interface Template {
 		fields: SchemaItem[];
 	};
 	created_at: string;
+	updated_at?: string; // Add updated_at field which might be optional
 }
 
 function TemplatesComponent() {
@@ -63,6 +64,9 @@ function TemplatesComponent() {
 	);
 	const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
 	const formRef = React.useRef<HTMLFormElement>(null);
+	const [originalTemplateFields, setOriginalTemplateFields] = React.useState<
+		SchemaItem[]
+	>([]);
 
 	// Fetch templates on component mount
 	React.useEffect(() => {
@@ -270,10 +274,20 @@ function TemplatesComponent() {
 	};
 
 	const handleEditTemplate = (template: Template) => {
+		setOriginalTemplateFields(
+			JSON.parse(JSON.stringify(template.extraction_schema.fields))
+		);
 		setSelectedTemplate(template);
-		setTemplateFields(template.extraction_schema.fields);
+		setTemplateFields(
+			JSON.parse(JSON.stringify(template.extraction_schema.fields))
+		);
 		setIsEditing(true);
-		setIsModalOpen(true);
+	};
+
+	const cancelEditing = () => {
+		setTemplateFields([{ name: "", type: "string", description: "" }]);
+		setIsEditing(false);
+		setSelectedTemplate(null);
 	};
 
 	const handleViewTemplate = (template: Template) => {
@@ -304,55 +318,61 @@ function TemplatesComponent() {
 				</Button>
 			</div>
 
-			<Card className="card">
-				<CardHeader className="card-header">
-					<CardTitle className="card-title">
-						{configFile
-							? "Selected Template File"
-							: "Upload Template File"}
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="card-content">
-					{!configFile ? (
-						<div
-							{...getRootProps()}
-							className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center transition-all duration-200"
-						>
-							<input {...getInputProps()} />
-							<p className="text-gray-500">
-								Drag & drop template file here, or click to select file
-							</p>
-						</div>
-					) : (
-						<div className="bg-gray-100 p-4 rounded flex justify-between items-center">
-							<span>
-								{configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
-							</span>
-							<Button
-								size="sm"
-								variant="destructive"
-								onClick={() => {
-									setConfigFile(null);
-									setTemplateFields([
-										{ name: "", type: "string", description: "" },
-									]);
-									setShowSuccess(false);
-								}}
+			{!isEditing && (
+				<Card className="card">
+					<CardHeader className="card-header">
+						<CardTitle className="card-title">
+							{configFile ? "Selected Template File" : "Upload Template File"}
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="card-content">
+						{!configFile ? (
+							<div
+								{...getRootProps()}
+								className="border-2 border-dashed p-6 rounded cursor-pointer bg-gray-50 hover:bg-gray-100 text-center"
 							>
-								<Trash2 className="h-4 w-4" />
-							</Button>
-						</div>
-					)}
-				</CardContent>
-			</Card>
+								<input {...getInputProps()} />
+								<p className="text-gray-500">
+									Drag & drop template file here, or click to select file
+								</p>
+							</div>
+						) : (
+							<div className="bg-gray-100 p-4 rounded flex justify-between items-center">
+								<span>
+									{configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
+								</span>
+								<Button
+									size="sm"
+									variant="destructive"
+									onClick={() => {
+										setConfigFile(null);
+										setTemplateFields([
+											{ name: "", type: "string", description: "" },
+										]);
+										setShowSuccess(false);
+									}}
+								>
+									<Trash2 className="h-4 w-4" />
+								</Button>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			)}
 
-			<Card className="card mt-6">
+			<Card className="card mt-6" id="template-fields-card">
 				<CardHeader>
 					<CardTitle className="text-lg">
-						{configFile ? "Template Fields" : "Define Template Fields"}
+						{isEditing && selectedTemplate
+							? `Edit Template: ${selectedTemplate.name}`
+							: configFile
+							? "Template Fields"
+							: "Define Template Fields"}
 					</CardTitle>
 					<p className="text-sm text-gray-500">
-						{configFile
+						{isEditing
+							? "Update the template fields below and click 'Update Template' when done."
+							: configFile
 							? "These fields were extracted from your template file. You can modify them below."
 							: "Define your template fields manually by filling out the form below."}
 					</p>
@@ -363,6 +383,28 @@ function TemplatesComponent() {
 							Template file uploaded successfully!
 						</div>
 					)}
+					{isEditing && selectedTemplate && (
+						<div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded flex justify-between items-center">
+							<div>
+								<span className="font-semibold">Currently editing: </span>
+								{selectedTemplate.name}
+							</div>
+							<Button size="sm" variant="outline" onClick={cancelEditing}>
+								Cancel Editing
+							</Button>
+						</div>
+					)}
+
+					{configFile && !isEditing && (
+						<div className="mb-4 p-4 bg-amber-50 text-amber-700 rounded">
+							<p>
+								You are currently working with an uploaded template file. Edit
+								the fields below and save when ready.
+							</p>
+						</div>
+					)}
+
+					{/* Form content remains the same */}
 					<form ref={formRef} onSubmit={(e) => e.preventDefault()}>
 						<div className="space-y-4">
 							{templateFields.map((field, index) => (
@@ -425,16 +467,23 @@ function TemplatesComponent() {
 									Add Field
 								</Button>
 								<Button
-									className="btn-primary"
+									className={isEditing ? "btn-secondary" : "btn-primary"}
 									onClick={() => {
 										if (!formRef.current?.checkValidity()) {
 											formRef.current?.reportValidity();
 											return;
 										}
-										setIsModalOpen(true);
+										if (isEditing && selectedTemplate) {
+											saveTemplate(
+												selectedTemplate.name,
+												selectedTemplate.description
+											);
+										} else {
+											setIsModalOpen(true);
+										}
 									}}
 								>
-									Save as Template
+									{isEditing ? "Update Template" : "Save as Template"}
 								</Button>
 							</div>
 						</div>
@@ -461,6 +510,7 @@ function TemplatesComponent() {
 									<TableHead>Description</TableHead>
 									<TableHead>Fields</TableHead>
 									<TableHead>Created At</TableHead>
+									<TableHead>Edited At</TableHead>
 									<TableHead>Actions</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -474,6 +524,11 @@ function TemplatesComponent() {
 										</TableCell>
 										<TableCell>
 											{new Date(template.created_at).toLocaleDateString()}
+										</TableCell>
+										<TableCell>
+											{template.updated_at
+												? new Date(template.updated_at).toLocaleDateString()
+												: "-"}
 										</TableCell>
 										<TableCell>
 											<div className="flex gap-2">
@@ -490,6 +545,13 @@ function TemplatesComponent() {
 													className="btn-primary"
 													size="sm"
 													onClick={() => handleEditTemplate(template)}
+													// Disable Edit button when a template file is uploaded
+													disabled={configFile !== null}
+													title={
+														configFile
+															? "Finish working with uploaded template first"
+															: ""
+													}
 												>
 													<Edit className="w-4 h-4 mr-1" />
 													Edit
@@ -509,6 +571,15 @@ function TemplatesComponent() {
 								))}
 							</TableBody>
 						</Table>
+					)}
+
+					{configFile && (
+						<div className="mt-4 p-4 bg-amber-50 text-amber-700 rounded">
+							<p>
+								You cannot edit saved templates while working with an uploaded
+								template file.
+							</p>
+						</div>
 					)}
 				</CardContent>
 			</Card>
