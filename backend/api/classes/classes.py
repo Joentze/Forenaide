@@ -85,9 +85,15 @@ class PipelineRunResponse(BaseModel):
     description: str
     extraction_schema: Dict[str, Any]
     status: PipelineStatus
-    file_paths: List[str]
+    file_paths: List[PipelineFilePath]
     strategy_id: UUID
     started_at: str
     completed_at: str
 # ========
 
+class PipelineSourceAssoc(BaseModel):
+    """
+    base model for source association
+    """
+    pipeline_id: UUID
+    source_id: UUID

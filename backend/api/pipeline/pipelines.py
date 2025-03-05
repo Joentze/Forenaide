@@ -4,8 +4,8 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Path, Response
 from fastapi.responses import JSONResponse
 from deps import EnvironDeps, SBaseDeps, RabbitMQDeps
 from uuid import UUID
-from classes.classes import CreatePipelineRun, UpdatePipelineRun, PipelineRunResponse
-from typing import List
+from classes.classes import CreatePipelineRun, PipelineSourceAssoc, UpdatePipelineRun, PipelineRunResponse
+from typing import List, cast
 
 
 router = APIRouter(prefix="/pipelines", tags=["Pipelines"])
@@ -30,6 +30,8 @@ async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineR
     """
     data = pipeline_run.model_dump(mode="json")
     response = await supabase.table("pipeline_runs").insert(data).execute()
+
+
     # publish message to extraction queue
     # background_tasks.add_task(rabbitmq.publish_message,
     #                           "extraction", json.dumps(data))
@@ -41,6 +43,19 @@ async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineR
             "extraction", json.dumps(response.data[0]))
     else:
         raise Exception("Rabbit MQ refuse to connect")
+
+    try:
+      sources_pipeline: List[PipelineSourceAssoc] = [PipelineSourceAssoc(**{
+            "pipeline_id": cast(UUID, response.data[0]["id"]),
+            "source_id": cast(UUID, source["bucket_path"].split("/")[0])
+          }) for source in data["file_paths"]]
+
+          # insert sources_pipeline
+      await supabase.table("sources_pipeline").insert([source.model_dump(mode="json") for source in sources_pipeline]).execute()
+
+    except Exception as e:
+      print("Error inserting sources_pipeline", str(e))
+
     return JSONResponse(content=response.data[0], status_code=201)
 
 # Get all pipeline runs
@@ -51,7 +66,7 @@ async def get_all_pipeline_runs(supabase: SBaseDeps):
     """
     gets all pipeline run
 
-    TOOD: if we have authentication, we probably got to query 
+    TOOD: if we have authentication, we probably got to query
           based on uid
     """
     result = await supabase.table("pipeline_runs").select("*").execute()
