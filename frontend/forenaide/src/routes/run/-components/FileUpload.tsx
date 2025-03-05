@@ -4,9 +4,10 @@ import { X, File as FileIcon, FileStack, LoaderCircle, FileXIcon, FileWarning, F
 import { create, StoreApi, UseBoundStore } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { produce, enableMapSet } from "immer"
-import { cn, filePathToDownloadUrl } from "@/lib/utils"
+import { cn, filePathToDownloadUrl, filePathToFileInfo } from "@/lib/utils"
 import { FileUploadResponse, jsonStorage, uploadFile } from "../../../lib/uploads"
 import { useToast } from "@/hooks/use-toast"
+import { FilePath } from "./Confirmation"
 
 export interface FileStore {
   files: FileInfo[]
@@ -16,6 +17,7 @@ export interface FileStore {
   uploaded: (fileId: string, uploadResponse: FileUploadResponse) => void
   removeFile: (fileId: string, toast?: Function) => void
   clearFiles: () => void
+  fromFilePaths: (files: FilePath[]) => void
 }
 
 export enum FileStatus {
@@ -27,15 +29,24 @@ export enum FileStatus {
 
 export type FileInfo = {
   id: string,
+  // Id of the file in storage bucket
   storageId?: string,
   status: FileStatus,
   message?: string,
-  fileObj: File,
+  fileObj?: File,
   downloadUrl?: string,
+  // Path of the file in storage bucket
   filePath?: string,
   mimetype?: string,
+  // stem of the file
   filename?: string,
   uploaded_at?: string,
+}
+
+class SourcesPipelineError extends Error {
+  constructor(message: string, public readonly response: Response) {
+    super(message)
+  }
 }
 
 export const useFileStore = create(persist<FileStore>((set, get) => ({
@@ -87,11 +98,20 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
           await deleteFile(file)
         }
         catch (e) {
+          let description = (e as Error).message
+          let variant = "destructive"
+          let title = "Failed to delete file"
+
+          if (e instanceof SourcesPipelineError) {
+            variant = "warning"
+            title = "File excluded from pipeline"
+          }
+
           toast &&
           toast({
-              title: "Failed to delete file",
-              description: (e as Error).message,
-              variant: "destructive"
+              title,
+              description,
+              variant
           })
         };
       }
@@ -111,6 +131,13 @@ export const useFileStore = create(persist<FileStore>((set, get) => ({
           state.files = []
         })
       )
+    },
+    fromFilePaths: (files: FilePath[]) => {
+      set(
+        produce((state: FileStore) => {
+          state.files = files.map(filePathToFileInfo)
+        })
+      )
     }
     }), { name: "fileStore", storage: jsonStorage }
   ))
@@ -126,7 +153,12 @@ async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
     method: "DELETE",
   })
 
-  const resBody = await res.json().catch(() => ({}))
+  // ignore response body as 204 No Content is expected
+  const resBody = await res.json().catch(() => {})
+
+  if (res.status == 400) {
+    throw new SourcesPipelineError(resBody?.detail ?? "Failed to delete file", resBody?.detail)
+  }
 
   if (!res.ok) throw new Error(`${res.status} ${resBody?.detail ?? ""}`)
 }
@@ -202,13 +234,13 @@ export default function FileUpload({ useFileStore }: { useFileStore: UseBoundSto
                     </figure>
                   </a>
                   <section className="flex flex-col">
-                    {file.fileObj.name}
+                    {file?.fileObj?.name ?? "Unknown file"}
                     <p className={cn("mt-0.5 opacity-60 text-sm"
                       , file.status == FileStatus.FAILED && "text-destructive"
                       , file.status == FileStatus.UPLOADED && "text-green-600"
                       // , [FileStatus.FAILED, FileStatus.UPLOADED].includes(file.status) && "font-semibold"
                     )}>
-                      {`${file.status}${file.message ? ": " + file.message : ""} (${(file.fileObj.size / 1024).toFixed(2)} KB)`}
+                      {`${file.status}${file.message ? ": " + file.message : ""} (${((file?.fileObj?.size ?? 0) / 1024).toFixed(2)} KB)`}
                     </p>
                   </section>
                 </div>

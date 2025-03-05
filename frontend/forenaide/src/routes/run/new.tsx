@@ -3,11 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import FileUpload, {
+    FileInfo,
 	FileStatus,
 	useFileStore,
 } from "./-components/FileUpload";
 // import ConfigUpload from './-components/ConfigUpload'
-import Confirmation, { CreatePipelineRequest } from './-components/Confirmation'
+import Confirmation, { CreatePipelineRequest, FilePath } from './-components/Confirmation'
 import { useToast } from "@/hooks/use-toast";
 import {
 	File as LRFile,
@@ -17,7 +18,28 @@ import {
 import TemplateConfig, { SchemaItem } from "./-components/TemplateConfig";
 
 export const Route = createFileRoute("/run/new")({
-	component: PipelineComponent,
+  // component: PipelineComponent,
+  component: () => {
+    const { initialFiles, initialTemplateFields } = Route.useLoaderData();
+    return PipelineComponent({initialFiles: initialFiles ?? [], initialTemplateFields: initialTemplateFields ?? []})
+  },
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      rerun: search.rerun as string
+    }
+  },
+  loaderDeps: ({ search: { rerun } }) => ({ rerun }),
+  loader: async ({ deps: { rerun } }) => {
+    return fetch(`http://localhost:8000/api/pipelines/${rerun}`)
+      .then((res) => res.json())
+      .then((data: CreatePipelineRequest) => {
+        console.log(data);
+        return {
+          initialFiles: data?.file_paths as FilePath[] ?? [],
+          initialTemplateFields: data?.extraction_schema?.extraction_config.schema ?? []
+        };
+      });
+  }
 });
 
 interface Step {
@@ -70,7 +92,7 @@ function StageTracker({
 }
 
 
-function PipelineComponent() {
+export function PipelineComponent({initialFiles, initialTemplateFields}: {initialFiles?: FilePath[], initialTemplateFields?: SchemaItem[]}) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = React.useState(0);
 	const [configFile, setConfigFile] = React.useState<File | null>(null);
@@ -80,6 +102,15 @@ function PipelineComponent() {
 	]);
 
 	const files = useFileStore((state) => state.files);
+	const fromFilePaths = useFileStore((state) => state.fromFilePaths);
+
+	React.useEffect(() => {
+  	if (initialFiles && initialFiles?.length > 0) {
+     console.log("initialFiles", initialFiles);
+     fromFilePaths(initialFiles);
+      }
+  }, [initialFiles]);
+
 	const clearFiles = useFileStore((state) => state.clearFiles);
 	const uploadedFiles = React.useMemo(() => files.filter(
 		(file) => file.status === FileStatus.UPLOADED
@@ -88,7 +119,7 @@ function PipelineComponent() {
   const [pipelineRequest, setPipelineRequest] = React.useState<CreatePipelineRequest | null>(null);
   const [isPipelineCreated, setPipelineCreated] = React.useState<boolean>(false);
 
-  const [templateFields, setTemplateFields] = React.useState<SchemaItem[]>([{name: "", type: "string", description: ""}])
+  const [templateFields, setTemplateFields] = React.useState<SchemaItem[]>(initialTemplateFields ?? [{name: "", type: "string", description: ""}])
   const formRef = React.useRef<HTMLFormElement>(null);
 
 	async function submitPipeline(pipelineRequest: CreatePipelineRequest | null): Promise<void> {

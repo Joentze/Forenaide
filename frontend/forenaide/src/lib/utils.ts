@@ -1,4 +1,5 @@
 import { FilePath } from "@/routes/run/-components/Confirmation";
+import { FileInfo, FileStatus } from "@/routes/run/-components/FileUpload";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -13,4 +14,18 @@ export function filePathToDownloadUrl(filePath?: string): string {
   const fullPath = `${bucket}/${filePath}`;
 
   return `${storageUrl}/${fullPath}`;
+}
+
+export function filePathToFileInfo(path: FilePath): FileInfo {
+  return {
+    id: crypto.randomUUID() as string,
+    filePath: path.bucket_path,
+    storageId: path.bucket_path.split("/")[0],
+    status: FileStatus.UPLOADED,
+    downloadUrl: filePathToDownloadUrl(path.bucket_path),
+    fileObj: new File([], path.filename, {}),
+    mimetype: path.mimetype,
+    filename: path.filename,
+  }
+
 }
