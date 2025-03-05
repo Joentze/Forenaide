@@ -57,6 +57,11 @@ async def delete_file_by_id(supabase: SBaseDeps, id: str):
         if not data_source.data:
             raise HTTPException(status_code=404, detail="file not found")
 
+        sources_pipeline = await supabase.from_("sources_pipeline").select("*").eq("source_id", id).execute()
+
+        if sources_pipeline.data:
+            raise HTTPException(status_code=400, detail="Cannot delete file that is associated with a pipeline")
+
         path = data_source.data[0]["path"]
         res = await supabase.storage.from_(bucket_name).remove([path])
 
@@ -67,5 +72,8 @@ async def delete_file_by_id(supabase: SBaseDeps, id: str):
 
         return Response(status_code=204)
 
+    except HTTPException as e:
+        raise e
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+          raise HTTPException(status_code=500, detail=str(e))
