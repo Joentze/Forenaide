@@ -13,16 +13,14 @@ VALUES
     'Shareholder template',
     'Extracting shareholder information from an uploaded document',
     '{"fields": [
-        {"name":"Requested Entity Name", "type":"string", "description":"Name of the requested entity in the business profile"},
-        {"name":"Entity Number", "type":"string","description":"Entity number of the requested entity"},
-        {"name":"Name of shareholder","type":"string","description":"Names of shareholder that is holding shares of the requested entity"},
-        {"name":"Shareholder ID","type":"string","description":"ID of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"Shareholder Address","type":"string","description":"Address of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"Date of Change of Address","type":"string","description":"Date of change of address for the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"Nationality/Citizenship","type":"string","description":"Citizenship of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"Share Type","type":"string","description":"Type of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"No of Shares","type":"integer","description":"Number of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"},
-        {"name":"Currency","type":"string","description":"Currency of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table"}
+        {"name":"Name of shareholder","type":"string","description":"Names of shareholder that is holding shares of the requested entity, found only in the shareholders table and no where else. Do not include the entity that issued these shares"},
+        {"name":"Shareholder ID","type":"string","description":"ID of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"Shareholder Address","type":"string","description":"Address of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"Date of Change of Address","type":"string","description":"Date of change of address for the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"Nationality/Citizenship","type":"string","description":"Citizenship of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"Share Type","type":"string","description":"Type of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"No of Shares","type":"integer","description":"Number of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
+        {"name":"Currency","type":"string","description":"Currency of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"}
     ]}', 
     current_timestamp
 ),
