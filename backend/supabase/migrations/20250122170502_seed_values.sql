@@ -19,8 +19,7 @@ VALUES
         {"name":"Date of Change of Address","type":"string","description":"Date of change of address for the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
         {"name":"Nationality/Citizenship","type":"string","description":"Citizenship of corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
         {"name":"Share Type","type":"string","description":"Type of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
-        {"name":"No of Shares","type":"integer","description":"Number of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"},
-        {"name":"Currency","type":"string","description":"Currency of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"}
+        {"name":"No of Shares","type":"integer","description":"Number of shares that are being held by the corresponding shareholder that is holding shares of the requested entity, found in the shareholders table and no where else"}
     ]}', 
     current_timestamp
 ),
