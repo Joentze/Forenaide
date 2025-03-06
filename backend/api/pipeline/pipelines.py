@@ -4,9 +4,8 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Path, Response
 from fastapi.responses import JSONResponse
 from deps import EnvironDeps, SBaseDeps, RabbitMQDeps
 from uuid import UUID
-from classes.classes import CreatePipelineRun, PipelineSourceAssoc, UpdatePipelineRun, PipelineRunResponse
+from classes.classes import CreatePipelineRun, PipelineSourceAssoc, UpdatePipelineRun, PipelineRunResponse, OutputWithPipelineResponse
 from typing import List, cast
-
 
 router = APIRouter(prefix="/pipelines", tags=["Pipelines"])
 
@@ -128,4 +127,57 @@ async def get_sources_for_pipeline(supabase: SBaseDeps, pipeline_id: UUID):
     sources = [source["source_id"] for source in result.data]
     response = {"pipeline_id": pipeline_id, "source_ids": sources}
     # return response
+    return JSONResponse(content=response, status_code=200)
+
+@router.get("/outputs/{pipeline_id}", response_model=List[OutputWithPipelineResponse])
+async def get_pipeline_outputs(supabase: SBaseDeps,pipeline_id: UUID):
+    """
+    Gets all outputs for a specific pipeline with associated pipeline information
+    
+    Args:
+        pipeline_id: UUID of the pipeline
+    """
+    # Query outputs with pipeline information using a join
+    result = await supabase.table("outputs")\
+        .select("""
+            *,
+            pipeline:pipeline_runs (*)
+        """)\
+        .eq("pipeline_id", str(pipeline_id))\
+        .execute()
+        
+    pipeline_data = await get_pipeline_run(supabase, pipeline_id)
+
+    # if not result.data:
+    #     raise HTTPException(
+    #         status_code=404,
+    #         detail=f"No outputs found for pipeline {pipeline_id}"
+    #     )
+
+    # Restructure the response data
+    # pipeline_data = None
+    outputs = []
+    
+    # Extract pipeline data and outputs
+    for item in result.data:
+        if not pipeline_data and 'pipeline' in item:
+            pipeline_info = item['pipeline']
+            if isinstance(pipeline_info, list):
+                pipeline_data = pipeline_info[0] if pipeline_info else None
+            else:
+                pipeline_data = pipeline_info
+        
+        # Add output data without the pipeline information
+        output_data = {
+            key: value for key, value in item.items() 
+            if key != 'pipeline'
+        }
+        outputs.append(output_data)
+
+    # Structure the final response
+    response = {
+        "pipeline": pipeline_data.model_dump(mode="json"),
+        "outputs": outputs
+    }
+
     return JSONResponse(content=response, status_code=200)

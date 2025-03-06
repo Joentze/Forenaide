@@ -89,6 +89,19 @@ class PipelineRunResponse(BaseModel):
     strategy_id: UUID
     started_at: str
     completed_at: str
+
+class OutputResponse(BaseModel):
+    id: UUID
+    uri: str
+    pipeline_id: UUID
+    created_at: str
+
+class OutputWithPipelineResponse(BaseModel):
+    """
+    Response model for output with associated pipeline information
+    """
+    pipeline: PipelineRunResponse
+    outputs: List[OutputResponse]
 # ========
 
 class PipelineSourceAssoc(BaseModel):
