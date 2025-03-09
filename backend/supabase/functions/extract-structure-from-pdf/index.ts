@@ -15,6 +15,7 @@ const supabase = createClient(
 );
 
 async function uploadResultFiles(
+  name: string,
   runId: string,
   result: Record<string, object[]>,
 ) {
@@ -27,6 +28,7 @@ async function uploadResultFiles(
       ],
     });
 
+    const newFilename = name.replace(/[^a-zA-Z0-9]/g, "_");
     const csvString = csvParser.parse(rows);
 
     const jsonString = JSON.stringify(result);
@@ -35,8 +37,8 @@ async function uploadResultFiles(
     const jsonBlob = new Blob([jsonString], { type: "application/json" });
     const csvBlob = new Blob([csvString], { type: "text/plain" });
     // Generate a unique ID for the JSON file
-    const jsonFileName = `${runId}/result.json`;
-    const csvFileName = `${runId}/result.csv`;
+    const jsonFileName = `${runId}/${newFilename}.json`;
+    const csvFileName = `${runId}/${newFilename}.csv`;
 
     // Upload the JSON file to the outputs bucket
     const [{ error: jsonError }, { error: csvError }] = await Promise.all([
@@ -257,6 +259,7 @@ const filePathSchema = z.object({
 type FilePathType = z.infer<typeof filePathSchema>;
 
 const extractionMessageSchema = z.object({
+  name: z.string(),
   id: z.string(),
   file_paths: z.array(filePathSchema),
   schema: z.record(z.any()),
@@ -266,13 +269,13 @@ const extractionMessageSchema = z.object({
 type ExtractionMessageType = z.infer<typeof extractionMessageSchema>;
 
 async function processMessage(message: ExtractionMessageType) {
-  const { id: runId, file_paths: paths, schema, description } = message;
+  const { name, id: runId, file_paths: paths, schema, description } = message;
   const result = await extractStructureFromPdfs({
     paths,
     schema,
     description,
   });
-  await uploadResultFiles(runId, result);
+  await uploadResultFiles(name, runId, result);
 }
 
 Deno.serve(async (_) => {
@@ -290,7 +293,19 @@ Deno.serve(async (_) => {
       processMessage(message)
     ),
   );
+  const msgIds = data.map(({ msg_id }: { msg_id: string }) => {
+    return msg_id;
+  });
+  const { error: deleteMsgsError } = await supabase.schema(
+    "pgmq",
+  ).rpc("delete", {
+    queue_name: "extraction",
+    msg_ids: msgIds,
+  });
 
+  if (deleteMsgsError) {
+    throw new Error("there was an error with queued message");
+  }
   return new Response(
     JSON.stringify({ started: true }),
     { headers: { "Content-Type": "application/json" } },
