@@ -1,35 +1,51 @@
-// extract structure from pdf 
+// extract structure from pdf
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod";
 // import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { google } from 'npm:@ai-sdk/google';
+import { google } from "npm:@ai-sdk/google";
 import { generateText, tool } from "npm:ai";
+import { createClient } from "npm:@supabase/supabase-js";
 
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!,
+);
 
-async function extractStructureFromPdf({ pdfUrl, extractionDescription, jsonSchema }: { pdfUrl: string, extractionDescription: string, jsonSchema: Record<string, any> }) {
-  const url = z.string().url().parse(pdfUrl)
+async function extractStructureFromPdf(
+  { pdfUrl, extractionDescription, jsonSchema }: {
+    pdfUrl: string;
+    extractionDescription: string;
+    jsonSchema: Record<string, any>;
+  },
+) {
+  const url = z.string().url().parse(pdfUrl);
   await generateText({
-    model: google('gemini-1.5-flash'),
-    toolChoice: 'required',
+    model: google("gemini-1.5-flash"),
+    toolChoice: "required",
     tools: {
       extractionTool: tool({
         description: extractionDescription,
-        parameters: z.object({ instances: z.array(convertJsonSchemaToZod(jsonSchema)) }),
+        parameters: z.object({
+          instances: z.array(convertJsonSchemaToZod(jsonSchema)),
+        }),
         execute: async (instances) => {
-          console.log(instances)
+          console.log(instances);
           // TODO: write to db from here
-        }
-      })
+        },
+      }),
     },
     messages: [
       {
-        role: 'user',
+        role: "user",
         content: [
-          { type: 'text', text: 'Use *Extraction Tool* to extract data from pdf' },
           {
-            type: 'file',
-            mimeType: 'application/pdf',
+            type: "text",
+            text: "Use *Extraction Tool* to extract data from pdf",
+          },
+          {
+            type: "file",
+            mimeType: "application/pdf",
             data: url,
           },
         ],
@@ -54,14 +70,13 @@ type JSONSchemaType = {
   description?: string;
 };
 
-
 function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
   if (!schema.type && schema.enum) {
     return z.enum(schema.enum as [string, ...string[]]);
   }
 
   switch (schema.type) {
-    case 'string':
+    case "string":
       let stringSchema = z.string();
 
       if (schema.minLength !== undefined) {
@@ -73,17 +88,19 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
       if (schema.pattern) {
         stringSchema = stringSchema.regex(new RegExp(schema.pattern));
       }
-      if (schema.format === 'email') {
+      if (schema.format === "email") {
         stringSchema = stringSchema.email();
       }
-      if (schema.format === 'uuid') {
+      if (schema.format === "uuid") {
         stringSchema = stringSchema.uuid();
       }
       return stringSchema;
 
-    case 'number':
-    case 'integer':
-      let numberSchema = schema.type === 'integer' ? z.number().int() : z.number();
+    case "number":
+    case "integer":
+      let numberSchema = schema.type === "integer"
+        ? z.number().int()
+        : z.number();
 
       if (schema.minimum !== undefined) {
         numberSchema = numberSchema.min(schema.minimum);
@@ -93,19 +110,19 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
       }
       return numberSchema;
 
-    case 'boolean':
+    case "boolean":
       return z.boolean();
 
-    case 'null':
+    case "null":
       return z.null();
 
-    case 'array':
+    case "array":
       if (!schema.items) {
         return z.array(z.any());
       }
       return z.array(convertJsonSchemaToZod(schema.items));
 
-    case 'object':
+    case "object":
       if (!schema.properties) {
         return z.record(z.any());
       }
@@ -124,20 +141,19 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
 }
 
 Deno.serve(async (req) => {
-  const { url, schema, description } = await req.json()
+  const { url, schema, description } = await req.json();
 
   try {
     EdgeRuntime.waitUntil(extractStructureFromPdf({
       pdfUrl: url,
       jsonSchema: schema,
-      extractionDescription: description
-    }))
+      extractionDescription: description,
+    }));
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
   return new Response(
     JSON.stringify({ "started": true }),
     { headers: { "Content-Type": "application/json" } },
-  )
-})
-
+  );
+});

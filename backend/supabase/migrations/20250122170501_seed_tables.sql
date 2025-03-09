@@ -28,9 +28,9 @@ create table pipeline_runs (
 );
 
 create table data_sources (
-    id uuid primary key,
+    id uuid primary key default gen_random_uuid(),
     path varchar(255) not null,
-    mimetype varchar(50) not null,
+    mimetype varchar(255) not null,
     filename varchar(255) not null,
     uploaded_at timestamp default current_timestamp not null
 );
