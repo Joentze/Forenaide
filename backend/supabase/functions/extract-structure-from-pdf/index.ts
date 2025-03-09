@@ -278,6 +278,26 @@ async function processMessage(message: ExtractionMessageType) {
   await uploadResultFiles(name, runId, result);
 }
 
+async function processAllMessages(messages: any) {
+  await Promise.all(
+    messages.map(({ message }: { message: ExtractionMessageType }) =>
+      processMessage(message)
+    ),
+  );
+  const msgIds = messages.map(({ msg_id }: { msg_id: string }) => {
+    return msg_id;
+  });
+  const { error: deleteMsgsError } = await supabase.schema(
+    "pgmq",
+  ).rpc("delete", {
+    queue_name: "extraction",
+    msg_ids: msgIds,
+  });
+  if (deleteMsgsError) {
+    throw new Error("there was an error with queued message");
+  }
+}
+
 Deno.serve(async (_) => {
   const { data, error } = await supabase.schema("pgmq").rpc("read", {
     queue_name: "extraction",
@@ -287,25 +307,8 @@ Deno.serve(async (_) => {
   if (error) {
     throw new Error("there was an error with queued message");
   }
-
-  await Promise.all(
-    data.map(({ message }: { message: ExtractionMessageType }) =>
-      processMessage(message)
-    ),
-  );
-  const msgIds = data.map(({ msg_id }: { msg_id: string }) => {
-    return msg_id;
-  });
-  const { error: deleteMsgsError } = await supabase.schema(
-    "pgmq",
-  ).rpc("delete", {
-    queue_name: "extraction",
-    msg_ids: msgIds,
-  });
-
-  if (deleteMsgsError) {
-    throw new Error("there was an error with queued message");
-  }
+  // EdgeRuntime.waitUntil(processAllMessages(data));
+  await processAllMessages(data);
   return new Response(
     JSON.stringify({ started: true }),
     { headers: { "Content-Type": "application/json" } },
