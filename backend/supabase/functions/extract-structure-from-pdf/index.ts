@@ -14,7 +14,10 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_ANON_KEY")!,
 );
 
-async function uploadResultFiles(result: Record<string, object[]>) {
+async function uploadResultFiles(
+  runId: string,
+  result: Record<string, object[]>,
+) {
   try {
     // Convert instances to JSON string
     const { instances: rows } = result;
@@ -32,9 +35,8 @@ async function uploadResultFiles(result: Record<string, object[]>) {
     const jsonBlob = new Blob([jsonString], { type: "application/json" });
     const csvBlob = new Blob([csvString], { type: "text/plain" });
     // Generate a unique ID for the JSON file
-    const randomId = crypto.randomUUID();
-    const jsonFileName = `${randomId}.json`;
-    const csvFileName = `${randomId}.csv`;
+    const jsonFileName = `${runId}/result.json`;
+    const csvFileName = `${runId}/result.csv`;
 
     // Upload the JSON file to the outputs bucket
     const [{ error: jsonError }, { error: csvError }] = await Promise.all([
@@ -255,8 +257,8 @@ const filePathSchema = z.object({
 type FilePathType = z.infer<typeof filePathSchema>;
 
 const extractionMessageSchema = z.object({
+  id: z.string(),
   file_paths: z.array(filePathSchema),
-  url: z.string().url().optional(),
   schema: z.record(z.any()),
   description: z.string(),
 });
@@ -264,13 +266,13 @@ const extractionMessageSchema = z.object({
 type ExtractionMessageType = z.infer<typeof extractionMessageSchema>;
 
 async function processMessage(message: ExtractionMessageType) {
-  const { file_paths: paths, schema, description } = message;
+  const { id: runId, file_paths: paths, schema, description } = message;
   const result = await extractStructureFromPdfs({
     paths,
     schema,
     description,
   });
-  await uploadResultFiles(result);
+  await uploadResultFiles(runId, result);
 }
 
 Deno.serve(async (_) => {
