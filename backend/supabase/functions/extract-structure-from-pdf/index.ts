@@ -4,6 +4,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod";
 // import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { google } from "npm:@ai-sdk/google";
+import { Parser } from "npm:@json2csv/plainjs";
+import { flatten } from "npm:@json2csv/transforms";
 import { generateText, tool } from "npm:ai";
 import { createClient } from "npm:@supabase/supabase-js";
 
@@ -12,26 +14,100 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_ANON_KEY")!,
 );
 
-async function extractStructureFromPdf(
-  { pdfUrl, extractionDescription, jsonSchema }: {
-    pdfUrl: string;
-    extractionDescription: string;
-    jsonSchema: Record<string, any>;
-  },
-) {
-  const url = z.string().url().parse(pdfUrl);
+async function uploadResultFiles(result: Record<string, object[]>) {
+  try {
+    // Convert instances to JSON string
+    const { instances: rows } = result;
+    const csvParser = new Parser({
+      transforms: [
+        flatten(),
+      ],
+    });
+
+    const csvString = csvParser.parse(rows);
+
+    const jsonString = JSON.stringify(result);
+
+    // Create a Blob from the JSON string
+    const jsonBlob = new Blob([jsonString], { type: "application/json" });
+    const csvBlob = new Blob([csvString], { type: "text/plain" });
+    // Generate a unique ID for the JSON file
+    const randomId = crypto.randomUUID();
+    const jsonFileName = `${randomId}.json`;
+    const csvFileName = `${randomId}.csv`;
+
+    // Upload the JSON file to the outputs bucket
+    const [{ error: jsonError }, { error: csvError }] = await Promise.all([
+      supabase.storage.from("outputs").upload(jsonFileName, jsonBlob, {
+        contentType: "application/json",
+      }),
+      supabase.storage.from("outputs").upload(csvFileName, csvBlob, {
+        contentType: "text/plain",
+      }),
+    ]);
+    if (jsonError || csvError) {
+      throw new Error("Failed to upload result file(s)");
+    }
+  } catch (error) {
+    console.error("Error in uploadJson function:", error);
+    throw error;
+  }
+}
+
+interface FileB64Result {
+  filename: string;
+  blob: string;
+}
+
+async function getPdfFileB64(
+  filename: string,
+  path: string,
+): Promise<FileB64Result> {
+  const { data, error } = await supabase.storage.from("sources").download(path);
+  if (error) {
+    throw new Error(`Error getting file:${JSON.stringify(error)}`);
+  }
+  const reader = new FileReader();
+  const base64Promise = new Promise<string>((resolve, reject) => {
+    reader.onloadend = () => {
+      if (reader.result) {
+        resolve(reader.result.toString().split(",")[1]);
+      } else {
+        reject(new Error("Failed to convert blob to base64"));
+      }
+    };
+    reader.onerror = () => {
+      reject(new Error("Error reading blob as base64"));
+    };
+  });
+
+  reader.readAsDataURL(data);
+  return { filename, blob: await base64Promise };
+}
+
+async function extractFromPdf({
+  filename,
+  blob,
+  description,
+  schema,
+}: {
+  filename: string;
+  blob: string;
+  description: string;
+  schema: Record<string, unknown>;
+}): Promise<object[]> {
+  let instancesList: object[] | undefined = undefined;
   await generateText({
     model: google("gemini-1.5-flash"),
     toolChoice: "required",
     tools: {
       extractionTool: tool({
-        description: extractionDescription,
+        description,
         parameters: z.object({
-          instances: z.array(convertJsonSchemaToZod(jsonSchema)),
+          instances: z.array(convertJsonSchemaToZod(schema)),
         }),
-        execute: async (instances) => {
-          console.log(instances);
-          // TODO: write to db from here
+        execute: async ({ instances }) => {
+          instancesList = instances;
         },
       }),
     },
@@ -46,12 +122,41 @@ async function extractStructureFromPdf(
           {
             type: "file",
             mimeType: "application/pdf",
-            data: url,
+            data: blob,
           },
         ],
       },
     ],
   });
+  if (!instancesList) {
+    throw new Error("pdf was not extracted");
+  }
+  return (instancesList as object[]).map((instance) => {
+    // added filename for traceability
+    return { ...instance, filename };
+  });
+}
+
+async function extractStructureFromPdfs(
+  { paths, description, schema }: {
+    paths: FilePathType[];
+    description: string;
+    schema: Record<string, unknown>;
+  },
+) {
+  const pdfB64s = await Promise.all(
+    paths.map(({ filename, bucket_path }) =>
+      getPdfFileB64(filename, bucket_path)
+    ),
+  );
+
+  const extractions = await Promise.all(
+    pdfB64s.map(({ filename, blob }) =>
+      extractFromPdf({ filename, blob, description, schema })
+    ),
+  );
+  const instances = extractions.flat();
+  return { instances };
 }
 
 type JSONSchemaType = {
@@ -140,20 +245,52 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
   }
 }
 
-Deno.serve(async (req) => {
-  const { url, schema, description } = await req.json();
+const filePathSchema = z.object({
+  uri: z.string().nullable(),
+  mimetype: z.string(),
+  bucket_path: z.string(),
+  filename: z.string(),
+});
 
-  try {
-    EdgeRuntime.waitUntil(extractStructureFromPdf({
-      pdfUrl: url,
-      jsonSchema: schema,
-      extractionDescription: description,
-    }));
-  } catch (e) {
-    console.error(e);
+type FilePathType = z.infer<typeof filePathSchema>;
+
+const extractionMessageSchema = z.object({
+  file_paths: z.array(filePathSchema),
+  url: z.string().url().optional(),
+  schema: z.record(z.any()),
+  description: z.string(),
+});
+
+type ExtractionMessageType = z.infer<typeof extractionMessageSchema>;
+
+async function processMessage(message: ExtractionMessageType) {
+  const { file_paths: paths, schema, description } = message;
+  const result = await extractStructureFromPdfs({
+    paths,
+    schema,
+    description,
+  });
+  await uploadResultFiles(result);
+}
+
+Deno.serve(async (_) => {
+  const { data, error } = await supabase.schema("pgmq").rpc("read", {
+    queue_name: "extraction",
+    vt: 0,
+    qty: 5,
+  });
+  if (error) {
+    throw new Error("there was an error with queued message");
   }
+
+  await Promise.all(
+    data.map(({ message }: { message: ExtractionMessageType }) =>
+      processMessage(message)
+    ),
+  );
+
   return new Response(
-    JSON.stringify({ "started": true }),
+    JSON.stringify({ started: true }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
