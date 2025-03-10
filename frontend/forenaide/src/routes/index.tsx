@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   FileText,
   Calendar,
   Table2,
+  RefreshCw,
 } from "lucide-react";
 import {
   Table,
@@ -38,7 +39,7 @@ type PipelineInfo = CreatePipelineRequest & {
 }
 
 enum Mode {
-  IN_PROGRESS = "inprogress",
+  PROCESSING = "processing",
   COMPLETED = "completed",
   FAILED = "failed",
   NOT_STARTED = "not_started"
@@ -103,16 +104,22 @@ function HomeComponent() {
               <TabsContent value="results">
                 <Card className="p-3 shadow-none">
                   <Tabs defaultValue="completed">
-                    <TabsList>
-                      <TabsTrigger value="completed">Completed</TabsTrigger>
-                      <TabsTrigger value="inprogress">In-Progress</TabsTrigger>
-                      <TabsTrigger value="failed">Failed</TabsTrigger>
-                    </TabsList>
+                    <section className="flex items-center gap-4">
+                      <TabsList>
+                        <TabsTrigger value="completed">Completed</TabsTrigger>
+                        <TabsTrigger value="inprogress">In-Progress</TabsTrigger>
+                        <TabsTrigger value="failed">Failed</TabsTrigger>
+                      </TabsList>
+                      <Button size="sm" variant="outline" className="rounded-lg" onClick={() => {window.location.reload()}}>
+                        <RefreshCw />
+                        Refresh
+                      </Button>
+                    </section>
                     <TabsContent value="completed">
                       <CompletedRuns pipelines={pipelineRuns.filter(p => p.status == Mode.COMPLETED)} />
                     </TabsContent>
                     <TabsContent value="inprogress">
-                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.IN_PROGRESS || p.status == Mode.NOT_STARTED)} mode={Mode.IN_PROGRESS} />
+                      <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.PROCESSING || p.status == Mode.NOT_STARTED)} mode={Mode.PROCESSING} />
                     </TabsContent>
                     <TabsContent value="failed">
                       <IncompleteRuns pipelines={pipelineRuns.filter(p => p.status == Mode.FAILED)} mode={Mode.FAILED} />
@@ -178,6 +185,47 @@ function HomeComponent() {
 }
 
 function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
+  const { toast } = useToast();
+
+  const downloadCSV = async (pipelineId: string) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/outputs/download/csv/" + pipelineId, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        toast({
+          description: "Download failed",
+          variant: "destructive"
+        })
+        return;
+      }
+
+      const blob = await response.blob();
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute(
+        'download',
+        `${pipelineId}-Output.csv`,
+      );
+
+      // Append to html link element page
+      document.body.appendChild(link);
+
+      // Start download
+      link.click();
+
+      // Clean up and remove the link
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -207,7 +255,7 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
             <TableCell>
               <FilePreview files={pipeline.file_paths} trigger={
                 <Button variant="ghost" className="px-0 m-0">
-                  <FileListPreview files={pipeline.file_paths}/>
+                  <FileListPreview files={pipeline.file_paths} />
                 </Button>
               } />
             </TableCell>
@@ -222,10 +270,16 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
                 } />
             </TableCell>
             <TableCell>
-              <Button><Download /></Button>
+              <Button onClick={() => downloadCSV(pipeline.id)}>
+                <Download />
+              </Button>
             </TableCell>
             <TableCell>
-              <Button><Redo2 /></Button>
+            <Link to="/run/new" search={(prev) => ({...prev, "rerun": pipeline.id})}>
+              <Button>
+                <Redo2 />
+              </Button>
+            </Link>
             </TableCell>
           </TableRow>
         ))}
@@ -234,7 +288,7 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
   )
 }
 
-function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: PipelineInfo[], mode: Mode }) {
+function IncompleteRuns({ pipelines, mode = Mode.PROCESSING }: { pipelines: PipelineInfo[], mode: Mode }) {
   return (
     <Table>
       <TableHeader>
@@ -243,7 +297,7 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
           <TableHead className="w-[200px]">Started</TableHead>
           <TableHead className="w-[600px]">Files</TableHead>
           <TableHead className="w-[250px]">Template</TableHead>
-          <TableHead className="">Percentage</TableHead>
+          {/* <TableHead className="">Percentage</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -263,7 +317,7 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
             <TableCell>
               <FilePreview files={pipeline.file_paths} trigger={
                 <Button variant="ghost" className="px-0 m-0">
-                  <FileListPreview files={pipeline.file_paths}/>
+                  <FileListPreview files={pipeline.file_paths} />
                 </Button>
               } />
             </TableCell>
@@ -277,10 +331,10 @@ function IncompleteRuns({ pipelines, mode = Mode.IN_PROGRESS }: { pipelines: Pip
                   </Button>
                 } />
             </TableCell>
-            <TableCell>
-              {mode == Mode.IN_PROGRESS && <Progress value={33} />}
+            {/* <TableCell>
+              {mode == Mode.PROCESSING && <Progress value={33} />}
               {mode == Mode.FAILED && <CheckCircle />}
-            </TableCell>
+            </TableCell> */}
           </TableRow>
         ))}
       </TableBody>

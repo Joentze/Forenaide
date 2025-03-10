@@ -36,8 +36,8 @@ const items = [
 		icon: FolderPlus,
 	},
 	{
-		title: "Manage Config File",
-		url: "/config",
+		title: "Manage Templates",
+		url: "/templates",
 		icon: FileSliders,
 	},
 ];

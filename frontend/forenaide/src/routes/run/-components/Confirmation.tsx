@@ -139,7 +139,7 @@ export default function Confirmation({
         </ul>
         {/* {configFile && (
           <>
-            <h4 className="font-semibold mt-4 mb-2">Configuration File:</h4>
+            <h4 className="font-semibold mt-4 mb-2">Template File:</h4>
             <div className="bg-gray-100 p-2 rounded">
               {configFile.name} ({(configFile.size / 1024).toFixed(2)} KB)
             </div>

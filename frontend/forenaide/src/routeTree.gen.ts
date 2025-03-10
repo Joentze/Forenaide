@@ -11,7 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as ConfigImport } from './routes/config'
+import { Route as TemplatesImport } from './routes/templates'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as UploadIndexImport } from './routes/upload/index'
@@ -19,9 +19,9 @@ import { Route as RunNewImport } from './routes/run/new'
 
 // Create/Update Routes
 
-const ConfigRoute = ConfigImport.update({
-  id: '/config',
-  path: '/config',
+const TemplatesRoute = TemplatesImport.update({
+  id: '/templates',
+  path: '/templates',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -67,11 +67,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
-    '/config': {
-      id: '/config'
-      path: '/config'
-      fullPath: '/config'
-      preLoaderRoute: typeof ConfigImport
+    '/templates': {
+      id: '/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof TemplatesImport
       parentRoute: typeof rootRoute
     }
     '/run/new': {
@@ -96,7 +96,7 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/config': typeof ConfigRoute
+  '/templates': typeof TemplatesRoute
   '/run/new': typeof RunNewRoute
   '/upload': typeof UploadIndexRoute
 }
@@ -104,7 +104,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/config': typeof ConfigRoute
+  '/templates': typeof TemplatesRoute
   '/run/new': typeof RunNewRoute
   '/upload': typeof UploadIndexRoute
 }
@@ -113,24 +113,24 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/config': typeof ConfigRoute
+  '/templates': typeof TemplatesRoute
   '/run/new': typeof RunNewRoute
   '/upload/': typeof UploadIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/config' | '/run/new' | '/upload'
+  fullPaths: '/' | '/about' | '/templates' | '/run/new' | '/upload'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/config' | '/run/new' | '/upload'
-  id: '__root__' | '/' | '/about' | '/config' | '/run/new' | '/upload/'
+  to: '/' | '/about' | '/templates' | '/run/new' | '/upload'
+  id: '__root__' | '/' | '/about' | '/templates' | '/run/new' | '/upload/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  ConfigRoute: typeof ConfigRoute
+  TemplatesRoute: typeof TemplatesRoute
   RunNewRoute: typeof RunNewRoute
   UploadIndexRoute: typeof UploadIndexRoute
 }
@@ -138,7 +138,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  ConfigRoute: ConfigRoute,
+  TemplatesRoute: TemplatesRoute,
   RunNewRoute: RunNewRoute,
   UploadIndexRoute: UploadIndexRoute,
 }
@@ -155,7 +155,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
-        "/config",
+        "/templates",
         "/run/new",
         "/upload/"
       ]
@@ -166,8 +166,8 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
-    "/config": {
-      "filePath": "config.tsx"
+    "/templates": {
+      "filePath": "templates.tsx"
     },
     "/run/new": {
       "filePath": "run/new.tsx"

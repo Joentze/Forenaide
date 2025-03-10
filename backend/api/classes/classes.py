@@ -85,10 +85,23 @@ class PipelineRunResponse(BaseModel):
     description: str
     extraction_schema: Dict[str, Any]
     status: PipelineStatus
-    file_paths: List[str]
+    file_paths: List[PipelineFilePath]
     strategy_id: UUID
     started_at: str
     completed_at: str
+
+class OutputResponse(BaseModel):
+    id: UUID
+    uri: str
+    pipeline_id: UUID
+    created_at: str
+
+class OutputWithPipelineResponse(BaseModel):
+    """
+    Response model for output with associated pipeline information
+    """
+    pipeline: PipelineRunResponse
+    outputs: List[OutputResponse]
 # ========
 
 
@@ -100,3 +113,9 @@ class StrategyResponse(BaseModel):
     strategy: str
     name: str
     description: str
+class PipelineSourceAssoc(BaseModel):
+    """
+    base model for source association
+    """
+    pipeline_id: UUID
+    source_id: UUID
