@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { RiAnthropicFill, RiRobot2Fill } from "react-icons/ri";
 
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 
 interface Strategy {
   id: string;
@@ -52,10 +53,14 @@ function getIcon(strategy: string): JSX.Element | null {
 }
 
 export function ExtractionSelect() {
+  const { setConfigStrategy } = useSchemaFieldStore();
   const [strategies, setStrategies] = useState<Strategy[]>(defaultStrategies);
   // TODO: make api call to get strategies
+  useEffect(() => {
+    setConfigStrategy(strategies[0].id);
+  }, []);
   return (
-    <Select defaultValue={strategies[0].id}>
+    <Select defaultValue={strategies[0].id} onValueChange={setConfigStrategy}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select an Extraction Strategy" />
       </SelectTrigger>

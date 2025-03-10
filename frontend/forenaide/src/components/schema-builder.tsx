@@ -289,7 +289,7 @@ const SchemaBuilder: React.FC = () => {
     <div className="">
       <div className="flex flex-row gap-2 mb-4">
         <p className="text-gray-500 my-auto">
-          Define the content that you&apos;d like to extract
+          Click "Add New Field" to start defining extraction schema
         </p>
         <div className="flex-grow" />
         <TooltipProvider>

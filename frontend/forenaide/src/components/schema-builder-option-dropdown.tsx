@@ -25,9 +25,9 @@ export function SchemaOptionDropdown({
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem disabled>
             <Sparkles />
-            Generate Schema
+            Generate Schema (Coming Soon...)
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
