@@ -29,9 +29,15 @@ INSERT INTO
 VALUES
   (
     '86a1b98b-b3fe-4f92-96e2-0fbe141fe669',
-    'file_image_openai',
-    'File Image OpenAI',
-    'Strategy for extracting structured data from images of files using OpenAI'
+    'gemini:pdf',
+    'Gemini PDF extraction',
+    'Strategy for extracting structure from pdf using Gemini 1.5 Flash'
+  ),
+  (
+    '86a1b98b-b3fe-4f92-96e2-0fbe141fe667',
+    'claude:pdf',
+    'Claude PDF extraction',
+    'Strategy for extracting structure from pdf using Claude 3.5 Sonnet'
   );
 
 -- (
@@ -82,7 +88,6 @@ VALUES
 --     current_timestamp,
 --     ARRAY ['https://example.com/file3.json', 'https://example.com/file4.json']
 --   );
-
 -- -- Insert mock data for data_sources
 -- INSERT INTO
 --   data_sources (id, uri, mimetype, filename)
@@ -113,7 +118,6 @@ VALUES
 --     '3642fbc9-e3b1-41d3-bde8-6c6d521f75d7',
 --     '3b4db45f-3628-4a76-b5b3-6eeb5c6c3ed6'
 --   );
-
 -- -- Insert mock data for outputs
 -- INSERT INTO
 --   outputs (id, pipeline_id, uri)

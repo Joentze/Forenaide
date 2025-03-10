@@ -91,3 +91,12 @@ class PipelineRunResponse(BaseModel):
     completed_at: str
 # ========
 
+
+class StrategyResponse(BaseModel):
+    """
+    base model for strategy
+    """
+    id: UUID
+    strategy: str
+    name: str
+    description: str

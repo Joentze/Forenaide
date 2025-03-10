@@ -24,6 +24,7 @@ create table pipeline_runs (
     completed_at timestamp default current_timestamp not null,
     file_paths JSON not null,
     messages JSON,
+    error_message text,
     foreign key (strategy_id) references strategies(id)
 );
 

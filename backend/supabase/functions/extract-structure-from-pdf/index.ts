@@ -3,16 +3,82 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod";
 // import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { google } from "npm:@ai-sdk/google";
+import { LLMProviderMap } from "../_shared/extraction.ts";
 import { Parser } from "npm:@json2csv/plainjs";
 import { flatten } from "npm:@json2csv/transforms";
-import { generateText, tool } from "npm:ai";
+import { generateText, LanguageModel, tool } from "npm:ai";
 import { createClient } from "npm:@supabase/supabase-js";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_ANON_KEY")!,
 );
+
+const strategyOptions = z.enum(["claude:pdf", "gemini:pdf"]);
+
+type StrategyOptionType = z.infer<typeof strategyOptions>;
+
+const strategySchema = z.object({
+  id: z.string(),
+  strategy: strategyOptions,
+  name: z.string(),
+  description: z.string(),
+});
+
+type StrategyType = z.infer<typeof strategySchema>;
+
+async function getStrategy(strategyId: string): Promise<StrategyType> {
+  const { data, error } = await supabase.from("strategies").select().eq(
+    "id",
+    strategyId,
+  ).single();
+  if (error) {
+    throw new Error(`Error message: ${JSON.stringify(error)}`);
+  }
+  return strategySchema.parse(data);
+}
+
+async function doesRunIdExist(runId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("pipeline_runs")
+    .select("id")
+    .eq("id", runId);
+
+  if (!error && data.length === 0) {
+    throw new Error(
+      "error: pipeline run does not exists",
+    );
+  }
+}
+
+async function updatePipelineRunStatus(
+  runId: string,
+  status: "processing" | "failed" | "completed",
+  errorMessage?: string,
+) {
+  let otherProperties = {};
+  switch (status) {
+    case "failed":
+      otherProperties = { ...otherProperties, error_message: errorMessage };
+      break;
+    case "completed":
+      otherProperties = {
+        ...otherProperties,
+        completed_at: (new Date()).toISOString(),
+      };
+      break;
+  }
+  const { error } = await supabase.from("pipeline_runs").update({
+    status,
+    ...otherProperties,
+  }).eq(
+    "id",
+    runId,
+  );
+  if (error) {
+    throw new Error(`Error updating pipeline run: ${JSON.stringify(error)}`);
+  }
+}
 
 async function uploadResultFiles(
   name: string,
@@ -90,11 +156,13 @@ async function getPdfFileB64(
 }
 
 async function extractFromPdf({
+  strategy,
   filename,
   blob,
   description,
   schema,
 }: {
+  strategy: StrategyOptionType;
   filename: string;
   blob: string;
   description: string;
@@ -102,7 +170,7 @@ async function extractFromPdf({
 }): Promise<object[]> {
   let instancesList: object[] | undefined = undefined;
   await generateText({
-    model: google("gemini-1.5-flash"),
+    model: LLMProviderMap[strategy] as LanguageModel,
     toolChoice: "required",
     tools: {
       extractionTool: tool({
@@ -142,7 +210,8 @@ async function extractFromPdf({
 }
 
 async function extractStructureFromPdfs(
-  { paths, description, schema }: {
+  { strategy, paths, description, schema }: {
+    strategy: StrategyOptionType;
     paths: FilePathType[];
     description: string;
     schema: Record<string, unknown>;
@@ -156,7 +225,7 @@ async function extractStructureFromPdfs(
 
   const extractions = await Promise.all(
     pdfB64s.map(({ filename, blob }) =>
-      extractFromPdf({ filename, blob, description, schema })
+      extractFromPdf({ strategy, filename, blob, description, schema })
     ),
   );
   const instances = extractions.flat();
@@ -260,6 +329,7 @@ type FilePathType = z.infer<typeof filePathSchema>;
 
 const extractionMessageSchema = z.object({
   name: z.string(),
+  strategy_id: z.string(),
   id: z.string(),
   file_paths: z.array(filePathSchema),
   schema: z.record(z.any()),
@@ -269,13 +339,36 @@ const extractionMessageSchema = z.object({
 type ExtractionMessageType = z.infer<typeof extractionMessageSchema>;
 
 async function processMessage(message: ExtractionMessageType) {
-  const { name, id: runId, file_paths: paths, schema, description } = message;
-  const result = await extractStructureFromPdfs({
-    paths,
+  const {
+    name,
+    id: runId,
+    strategy_id: strategyId,
+    file_paths: paths,
     schema,
     description,
-  });
-  await uploadResultFiles(name, runId, result);
+  } = message;
+
+  await doesRunIdExist(runId);
+
+  const { strategy } = await getStrategy(strategyId);
+
+  await updatePipelineRunStatus(runId, "processing");
+  try {
+    const result = await extractStructureFromPdfs({
+      strategy,
+      paths,
+      schema,
+      description,
+    });
+    await uploadResultFiles(name, runId, result);
+  } catch (error) {
+    await updatePipelineRunStatus(
+      runId,
+      "failed",
+      `Error message: ${JSON.stringify(error)}`,
+    );
+  }
+  await updatePipelineRunStatus(runId, "completed");
 }
 
 async function processAllMessages(messages: any) {
@@ -307,6 +400,7 @@ Deno.serve(async (_) => {
   if (error) {
     throw new Error("there was an error with queued message");
   }
+
   // EdgeRuntime.waitUntil(processAllMessages(data));
   await processAllMessages(data);
   return new Response(
