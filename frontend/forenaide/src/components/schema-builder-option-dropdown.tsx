@@ -28,23 +28,30 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Select } from "./ui/select";
+import { useState } from "react";
+import { GenerateTemplateDialogContent } from "./template/generate-template-dialog-content";
 
 export function SchemaOptionDropdown({
   children,
 }: {
   children: React.ReactNode | React.ReactNode[];
 }) {
+  const [dialogContentSelect, setDialogContentSelect] = useState<
+    "ai" | "xlsx" | "saved"
+  >();
   return (
     <>
       <Dialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-full">
             <DropdownMenuGroup>
-              <DropdownMenuItem disabled>
-                <Sparkles />
-                Generate Schema (Coming Soon...)
-              </DropdownMenuItem>
+              <DialogTrigger className="w-full">
+                <DropdownMenuItem onClick={() => setDialogContentSelect("ai")}>
+                  <Sparkles />
+                  Generate Schema
+                </DropdownMenuItem>
+              </DialogTrigger>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -53,15 +60,24 @@ export function SchemaOptionDropdown({
                   Use Existing Template
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem disabled>
-                      Import from
-                      <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
-                        .xlsx
-                      </code>
-                    </DropdownMenuItem>
+                  <DropdownMenuSubContent className="flex flex-col">
                     <DialogTrigger>
-                      <DropdownMenuItem>Use Saved Template</DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled
+                        onClick={() => setDialogContentSelect("xlsx")}
+                      >
+                        Import from
+                        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
+                          .xlsx
+                        </code>
+                      </DropdownMenuItem>
+                    </DialogTrigger>
+                    <DialogTrigger>
+                      <DropdownMenuItem
+                        onClick={() => setDialogContentSelect("saved")}
+                      >
+                        Use Saved Template
+                      </DropdownMenuItem>
                     </DialogTrigger>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
@@ -69,7 +85,8 @@ export function SchemaOptionDropdown({
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <ApplyTemplateDialogContent />
+        {dialogContentSelect === "ai" && <GenerateTemplateDialogContent />}
+        {dialogContentSelect === "saved" && <ApplyTemplateDialogContent />}
       </Dialog>
     </>
   );

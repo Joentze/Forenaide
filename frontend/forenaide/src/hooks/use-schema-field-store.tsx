@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { SchemaField } from "@/types/schema-field";
 
 interface FileStoreState {
+  loading: boolean;
   configStrategy: string;
   configDescription: string;
   config: SchemaField[];
@@ -10,9 +11,15 @@ interface FileStoreState {
   setConfigDescription: (description: string) => void;
   setConfigStrategy: (strategyId: string) => void;
   reset: () => void;
+  generateFields: (prompt: string) => void;
 }
 
+type GeneratedSchemaType = {
+  fields: SchemaField[];
+};
+
 const useSchemaFieldStore = create<FileStoreState>()((set) => ({
+  loading: false,
   configStrategy: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
   configDescription: "Extract the relevant fields for this document",
   config: [],
@@ -29,10 +36,38 @@ const useSchemaFieldStore = create<FileStoreState>()((set) => ({
     })),
   reset: () =>
     set(() => ({
+      loading: false,
       configStrategy: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
       configDescription: "Extract the relevant fields for this document",
       config: [],
     })),
+  generateFields: async (prompt) => {
+    // TODO add in AI prompting to get generated fields
+    set(() => ({
+      loading: true,
+    }));
+
+    const response = await fetch(
+      "http://127.0.0.1:54321/functions/v1/generate-schema",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      }
+    );
+    if (!response.ok) {
+      console.error("Error:", await response.text());
+    }
+    const json = await response.json();
+    const { fields } = json as GeneratedSchemaType;
+    const generatedResponseSchema: SchemaField[] = fields;
+    set((state) => {
+      state.concatIntoConfig(generatedResponseSchema);
+      return { loading: false };
+    });
+  },
 }));
 
 export { useSchemaFieldStore };

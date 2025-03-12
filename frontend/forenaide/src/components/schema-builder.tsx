@@ -45,6 +45,7 @@ import {
 import { SchemaOptionDropdown } from "./schema-builder-option-dropdown";
 import { ExtractionSelect } from "./schema-extraction-strategy-select";
 import { SaveTemplateDialog } from "./template/save-template-dialog";
+import { Skeleton } from "./ui/skeleton";
 
 export const schemaZodSchema: z.ZodType<SchemaField> = z.lazy(() =>
   z.object({
@@ -237,35 +238,28 @@ const FieldComponent: React.FC<{
 };
 
 const SchemaBuilder: React.FC = () => {
-  const { config, setConfig, setConfigDescription } = useSchemaFieldStore();
-  const [schema, setSchema] = useState<SchemaField[]>([]);
+  const { loading, config, setConfig, setConfigDescription } =
+    useSchemaFieldStore();
+
   const [description, setDescription] = useState<string>(
     `Extract the relevant fields for this document`
   );
-  useEffect(() => {
-    console.log("updating...");
-    setConfig(schema);
-  }, [schema, setConfig]);
-
-  useEffect(() => {
-    setSchema(config);
-  }, [config]);
 
   const handleAddField = () => {
-    setSchema([...schema, { name: "", description: "", type: "string" }]);
+    setConfig([...config, { name: "", description: "", type: "string" }]);
     // updateExtractionConfig();
   };
 
   const handleUpdateField = (index: number, updatedField: SchemaField) => {
-    const updatedSchema = [...schema];
+    const updatedSchema = [...config];
     updatedSchema[index] = updatedField;
-    setSchema(updatedSchema);
+    setConfig(updatedSchema);
     // updateExtractionConfig();
   };
 
   const handleRemoveField = (index: number) => {
-    const updatedSchema = schema.filter((_, i) => i !== index);
-    setSchema(updatedSchema);
+    const updatedSchema = config.filter((_, i) => i !== index);
+    setConfig(updatedSchema);
     // updateExtractionConfig();
   };
   // const checkSchema = () => {
@@ -294,6 +288,7 @@ const SchemaBuilder: React.FC = () => {
         <p className="text-gray-500 my-auto">
           Click "Add New Field" to start defining extraction schema
         </p>
+
         <div className="flex-grow" />
         <TooltipProvider>
           <Tooltip>
@@ -310,7 +305,13 @@ const SchemaBuilder: React.FC = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      {schema.map((field, index) => (
+      {loading && (
+        <div className="my-8 space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      )}
+      {config.map((field, index) => (
         <FieldComponent
           key={index}
           field={field}

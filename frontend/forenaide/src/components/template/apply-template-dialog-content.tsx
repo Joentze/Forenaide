@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -88,6 +88,7 @@ export function ApplyTemplateDialogContent() {
             } = selectedTemplate[0];
             setSelectedFields(fields as SchemaField[]);
           }}
+          aria-hidden={false} // Ensure aria-hidden is not set to true
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose Existing Template" />
@@ -95,7 +96,9 @@ export function ApplyTemplateDialogContent() {
           <SelectContent>
             {templates.map((template) => {
               return (
-                <SelectItem value={template.id}>{template.name}</SelectItem>
+                <SelectItem value={template.id} key={template.id}>
+                  {template.name}
+                </SelectItem>
               );
             })}
           </SelectContent>
