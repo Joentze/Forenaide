@@ -15,7 +15,7 @@ def create_template_data():
     return CreateTemplate(
         name="Example Template",
         description="This is an example template.",
-        extraction_schema={"key": "value"}
+        schema={"key": "value"}
     )
 
 
@@ -27,7 +27,7 @@ def update_template_data():
     return UpdateTemplate(
         name="Updated Template",
         description="This is an updated template.",
-        extraction_schema={"key": "new_value"}
+        schema={"key": "new_value"}
     )
 
 

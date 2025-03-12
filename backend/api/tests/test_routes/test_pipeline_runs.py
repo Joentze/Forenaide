@@ -22,7 +22,7 @@ def create_pipeline_run_data():
         name="Example Pipeline Run",
         description="This is an example pipeline run.",
         strategy_id=UUID("15f2a8c5-72bf-4c08-84c8-252b576ad144"),
-        extraction_schema={"key": "value"},
+        schema={"key": "value"},
         file_uris=["https://example.com/file1.txt",
                    "https://example.com/file2.txt"]
     )

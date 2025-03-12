@@ -20,8 +20,6 @@ import {
   ListOrdered,
   Plus,
   Save,
-  Sparkle,
-  Sparkles,
 } from "lucide-react";
 import {
   Select,
@@ -46,6 +44,7 @@ import {
 } from "./ui/tooltip";
 import { SchemaOptionDropdown } from "./schema-builder-option-dropdown";
 import { ExtractionSelect } from "./schema-extraction-strategy-select";
+import { SaveTemplateDialog } from "./template/save-template-dialog";
 
 export const schemaZodSchema: z.ZodType<SchemaField> = z.lazy(() =>
   z.object({
@@ -295,9 +294,11 @@ const SchemaBuilder: React.FC = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button className="my-auto" size={"icon"} variant={"outline"}>
-                <Save />
-              </Button>
+              <SaveTemplateDialog>
+                <Button className="my-auto" size={"icon"} variant={"outline"}>
+                  <Save />
+                </Button>
+              </SaveTemplateDialog>
             </TooltipTrigger>
             <TooltipContent>
               <p>Save as New Template</p>

@@ -20,16 +20,4 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
     # Startup: establish RabbitMQ connection
     environ = Environ()
-    if not rabbitmq.connect(
-        host=environ.rabbitmq_host,
-        port=environ.rabbitmq_port
-    ):
-        logger.critical(
-            "Failed to establish RabbitMQ connection. Shutting down.")
-        raise SystemExit(1)
-    rabbitmq.close()
-    try:
-        yield
-    finally:
-        # Shutdown: close RabbitMQ connection
-        rabbitmq.close()
+    yield

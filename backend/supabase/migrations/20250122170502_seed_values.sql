@@ -4,7 +4,7 @@ templates (
     id,
     name,
     description,
-    extraction_schema,
+    schema,
     created_at
 )
 VALUES

@@ -66,6 +66,25 @@ function StageTracker({
   );
 }
 
+const pipelineBodySchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  schema: z.object({
+    type: z.literal("object"),
+    description: z.string().min(1),
+    properties: z.record(z.unknown()),
+  }),
+  strategy_id: z.string().uuid(),
+  file_paths: z.array(
+    z.object({
+      uri: z.string().url(),
+      bucket_path: z.string(),
+      mimetype: z.string(),
+      filename: z.string(),
+    })
+  ),
+});
+
 function PipelineComponent() {
   const { configDescription, configStrategy, config } = useSchemaFieldStore();
   const { toast } = useToast();
@@ -99,6 +118,19 @@ function PipelineComponent() {
     if (!pipelineRequest || typeof pipelineRequest !== "object") {
       toast({
         description: "Invalid pipeline",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validationResult = pipelineBodySchema.safeParse(pipelineRequest);
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors
+        .map((error) => error.message)
+        .join(", ");
+      toast({
+        description: `Invalid pipeline request: ${errorMessages}`,
         variant: "destructive",
       });
       return;

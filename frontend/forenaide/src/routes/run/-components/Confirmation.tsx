@@ -1,12 +1,11 @@
-import { FileUploadResponse } from "@/lib/uploads";
-import { FileInfo } from "./FileUpload";
+import { FileInfo, useFileStore } from "./FileUpload";
 import { Ref, useEffect, useState } from "react";
 import { CircleCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { SchemaItem } from "./TemplateConfig";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
+import { SchemaField } from "@/types/schema-field";
 
 export type FilePath = {
   uri?: string;
@@ -19,24 +18,27 @@ export type CreatePipelineRequest = {
   name: string;
   description: string;
   strategy_id: string;
-  extraction_schema: {
-    extraction_config: {
-      name: string;
-      description: string;
-      schema: {
-        name: string;
-        description: string;
-        type: string;
-      }[];
-    };
-  };
+  schema: Record<string, unknown>;
   file_paths: Partial<FilePath>[];
 };
 
+export function formatSchema(config: SchemaField[]): Record<string, unknown> {
+  return config.reduce((acc, field) => {
+    const value: any = { type: field.type };
+    if (field.description) value.description = field.description;
+    if (field.type === "array" && field.items) {
+      value.items = formatSchema([field.items])[field.items.name];
+    }
+    if (field.type === "object" && field.properties) {
+      value.properties = formatSchema(Object.values(field.properties));
+    }
+    acc[field.name] = value;
+    return acc;
+  }, {} as any);
+}
+
 export default function Confirmation({
   files,
-  configFile,
-  templateName = "",
   templateFields,
   pipelineRequest,
   setPipelineRequest,
@@ -57,12 +59,11 @@ export default function Confirmation({
     config,
     configDescription: description,
     configStrategy: strategy_id,
-    reset,
   } = useSchemaFieldStore();
-  const [oldFiles, setOldFiles] = useState<FileInfo[]>([]);
 
+  const { files: storedFiles } = useFileStore();
   useEffect(() => {
-    const file_paths: Partial<FilePath>[] = files.map((file) => ({
+    const file_paths: Partial<FilePath>[] = storedFiles.map((file) => ({
       uri: file.downloadUrl,
       bucket_path: file.filePath,
       mimetype: file.mimetype,
@@ -73,18 +74,16 @@ export default function Confirmation({
       name: pipelineName,
       description,
       strategy_id,
-      extraction_schema: {
-        extraction_config: {
-          name: "extraction_tool",
-          description: "extract the relevant fields for documents",
-          schema: templateFields ?? [],
-        },
+      schema: {
+        type: "object",
+        description,
+        properties: formatSchema(config),
       },
       file_paths,
     };
     setPipelineRequest(body);
-    if (files.length > 0) setOldFiles(files);
-  }, [pipelineName, files, configFile, templateFields]);
+    // if (files.length > 0) setOldFiles(files);
+  }, [pipelineName, files, config, description, strategy_id, templateFields]);
 
   // async function submitPipeline() {
   //   await fetch("http://localhost:8000/api/pipelines", {
@@ -122,18 +121,17 @@ export default function Confirmation({
               name="pipelineName"
               className="w-80 mb-3"
               value={pipelineRequest?.name ?? ""}
-              onChange={(e) =>
-                setPipelineRequest({ ...pipelineRequest, name: e.target.value })
-              }
+              onChange={(e) => setPipelineName(e.target.value)}
               required
             ></Input>
           </form>
         </section>
         <h4 className="font-semibold mb-2">Selected Files:</h4>
         <ul className="space-y-2">
-          {oldFiles.map((file, index) => (
+          {storedFiles.map((file, index) => (
             <li key={index} className="bg-gray-100 p-2 rounded">
-              {file.fileObj.name} ({(file.fileObj.size / 1024).toFixed(2)} KB)
+              {file.fileObj?.name} (
+              {((file.fileObj?.size as number) / 1024).toFixed(2)} KB)
             </li>
           ))}
         </ul>

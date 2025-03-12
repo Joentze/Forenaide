@@ -29,31 +29,31 @@ async def create_pipeline_run(supabase: SBaseDeps, pipeline_run: CreatePipelineR
     """
     data = pipeline_run.model_dump(mode="json")
     response = await supabase.table("pipeline_runs").insert(data).execute()
-
-
+    pipeline_id = response.data[0]["id"]
     # publish message to extraction queue
     # background_tasks.add_task(rabbitmq.publish_message,
     #                           "extraction", json.dumps(data))
-    if rabbitmq_client.connect(
-        host=environ.rabbitmq_host,
-        port=environ.rabbitmq_port
-    ):
-        rabbitmq_client.publish_message(
-            "extraction", json.dumps(response.data[0]))
-    else:
-        raise Exception("Rabbit MQ refuse to connect")
+    # if rabbitmq_client.connect(
+    #     host=environ.rabbitmq_host,
+    #     port=environ.rabbitmq_port
+    # ):
+    #     rabbitmq_client.publish_message(
+    #         "extraction", json.dumps(response.data[0]))
+    # else:
+    #     raise Exception("Rabbit MQ refuse to connect")
 
+    await supabase.schema("pgmq").rpc("send", {"queue_name": "extraction", "msg": {"id": pipeline_id, **pipeline_run.model_dump(mode="json")}}).execute()
     try:
-      sources_pipeline: List[PipelineSourceAssoc] = [PipelineSourceAssoc(**{
+        sources_pipeline: List[PipelineSourceAssoc] = [PipelineSourceAssoc(**{
             "pipeline_id": cast(UUID, response.data[0]["id"]),
             "source_id": cast(UUID, source["bucket_path"].split("/")[0])
-          }) for source in data["file_paths"]]
+        }) for source in data["file_paths"]]
 
-          # insert sources_pipeline
-      await supabase.table("sources_pipeline").insert([source.model_dump(mode="json") for source in sources_pipeline]).execute()
+        # insert sources_pipeline
+        await supabase.table("sources_pipeline").insert([source.model_dump(mode="json") for source in sources_pipeline]).execute()
 
     except Exception as e:
-      print("Error inserting sources_pipeline", str(e))
+        print("Error inserting sources_pipeline", str(e))
 
     return JSONResponse(content=response.data[0], status_code=201)
 
@@ -129,11 +129,12 @@ async def get_sources_for_pipeline(supabase: SBaseDeps, pipeline_id: UUID):
     # return response
     return JSONResponse(content=response, status_code=200)
 
+
 @router.get("/outputs/{pipeline_id}", response_model=List[OutputWithPipelineResponse])
-async def get_pipeline_outputs(supabase: SBaseDeps,pipeline_id: UUID):
+async def get_pipeline_outputs(supabase: SBaseDeps, pipeline_id: UUID):
     """
     Gets all outputs for a specific pipeline with associated pipeline information
-    
+
     Args:
         pipeline_id: UUID of the pipeline
     """
@@ -145,7 +146,7 @@ async def get_pipeline_outputs(supabase: SBaseDeps,pipeline_id: UUID):
         """)\
         .eq("pipeline_id", str(pipeline_id))\
         .execute()
-        
+
     pipeline_data = await get_pipeline_run(supabase, pipeline_id)
 
     # if not result.data:
@@ -157,7 +158,7 @@ async def get_pipeline_outputs(supabase: SBaseDeps,pipeline_id: UUID):
     # Restructure the response data
     # pipeline_data = None
     outputs = []
-    
+
     # Extract pipeline data and outputs
     for item in result.data:
         if not pipeline_data and 'pipeline' in item:
@@ -166,10 +167,10 @@ async def get_pipeline_outputs(supabase: SBaseDeps,pipeline_id: UUID):
                 pipeline_data = pipeline_info[0] if pipeline_info else None
             else:
                 pipeline_data = pipeline_info
-        
+
         # Add output data without the pipeline information
         output_data = {
-            key: value for key, value in item.items() 
+            key: value for key, value in item.items()
             if key != 'pipeline'
         }
         outputs.append(output_data)

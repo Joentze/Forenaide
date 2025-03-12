@@ -36,7 +36,7 @@ class MessageProcessor:
                 filename=file["filename"],
                 mimetype=file["mimetype"],
                 path=file["bucket_path"],
-                extraction_schema=pipeline_message.extraction_schema)
+                schema=pipeline_message.extraction_schema)
                 for file in pipeline_message.file_paths]
 
             step_data_results: List[StepData] = await asyncio.gather(*extraction_tasks)
@@ -82,11 +82,11 @@ class MessageProcessor:
                                   filename: str,
                                   mimetype: str,
                                   path: str,
-                                  extraction_schema: Dict[str, Any]
+                                  schema: Dict[str, Any]
                                   ) -> StepData:
         strategy = await self._get_strategy(strategy_id=strategy_id)
         file_bytes: bytes = await self._download_file(path=path)
-        config: SchemaConfiguration = extraction_schema
+        config: SchemaConfiguration = schema
         step_data = {
             "event": {
                 "filename": filename,

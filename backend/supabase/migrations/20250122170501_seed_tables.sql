@@ -2,7 +2,7 @@ create table templates (
     id uuid primary key default gen_random_uuid(),
     name varchar(100) not null,
     description text not null,
-    extraction_schema json not null,
+    schema json not null,
     created_at timestamp default current_timestamp not null
 );
 
@@ -18,7 +18,7 @@ create table pipeline_runs (
     name varchar(100) not null,
     description text,
     strategy_id uuid not null,
-    extraction_schema json not null,
+    schema json not null,
     status varchar(255) not null,
     started_at timestamp default current_timestamp not null,
     completed_at timestamp default current_timestamp not null,

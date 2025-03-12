@@ -2,7 +2,6 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod";
-// import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { LLMProviderMap } from "../_shared/extraction.ts";
 import { Parser } from "npm:@json2csv/plainjs";
 import { flatten } from "npm:@json2csv/transforms";
@@ -11,7 +10,7 @@ import { createClient } from "npm:@supabase/supabase-js";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_ANON_KEY")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!
 );
 
 const strategyOptions = z.enum(["claude:pdf", "gemini:pdf"]);
@@ -28,10 +27,11 @@ const strategySchema = z.object({
 type StrategyType = z.infer<typeof strategySchema>;
 
 async function getStrategy(strategyId: string): Promise<StrategyType> {
-  const { data, error } = await supabase.from("strategies").select().eq(
-    "id",
-    strategyId,
-  ).single();
+  const { data, error } = await supabase
+    .from("strategies")
+    .select()
+    .eq("id", strategyId)
+    .single();
   if (error) {
     throw new Error(`Error message: ${JSON.stringify(error)}`);
   }
@@ -45,16 +45,14 @@ async function doesRunIdExist(runId: string): Promise<void> {
     .eq("id", runId);
 
   if (!error && data.length === 0) {
-    throw new Error(
-      "error: pipeline run does not exists",
-    );
+    throw new Error("error: pipeline run does not exists");
   }
 }
 
 async function updatePipelineRunStatus(
   runId: string,
   status: "processing" | "failed" | "completed",
-  errorMessage?: string,
+  errorMessage?: string
 ) {
   let otherProperties = {};
   switch (status) {
@@ -64,17 +62,17 @@ async function updatePipelineRunStatus(
     case "completed":
       otherProperties = {
         ...otherProperties,
-        completed_at: (new Date()).toISOString(),
+        completed_at: new Date().toISOString(),
       };
       break;
   }
-  const { error } = await supabase.from("pipeline_runs").update({
-    status,
-    ...otherProperties,
-  }).eq(
-    "id",
-    runId,
-  );
+  const { error } = await supabase
+    .from("pipeline_runs")
+    .update({
+      status,
+      ...otherProperties,
+    })
+    .eq("id", runId);
   if (error) {
     throw new Error(`Error updating pipeline run: ${JSON.stringify(error)}`);
   }
@@ -83,15 +81,13 @@ async function updatePipelineRunStatus(
 async function uploadResultFiles(
   name: string,
   runId: string,
-  result: Record<string, object[]>,
+  result: Record<string, object[]>
 ) {
   try {
     // Convert instances to JSON string
     const { instances: rows } = result;
     const csvParser = new Parser({
-      transforms: [
-        flatten(),
-      ],
+      transforms: [flatten()],
     });
 
     const newFilename = name.replace(/[^a-zA-Z0-9]/g, "_");
@@ -103,8 +99,8 @@ async function uploadResultFiles(
     const jsonBlob = new Blob([jsonString], { type: "application/json" });
     const csvBlob = new Blob([csvString], { type: "text/plain" });
     // Generate a unique ID for the JSON file
-    const jsonFileName = `${runId}/${newFilename}.json`;
-    const csvFileName = `${runId}/${newFilename}.csv`;
+    const jsonFileName = `json/${runId}.json`;
+    const csvFileName = `csv/${runId}.csv`;
 
     // Upload the JSON file to the outputs bucket
     const [{ error: jsonError }, { error: csvError }] = await Promise.all([
@@ -131,7 +127,7 @@ interface FileB64Result {
 
 async function getPdfFileB64(
   filename: string,
-  path: string,
+  path: string
 ): Promise<FileB64Result> {
   const { data, error } = await supabase.storage.from("sources").download(path);
   if (error) {
@@ -209,24 +205,27 @@ async function extractFromPdf({
   });
 }
 
-async function extractStructureFromPdfs(
-  { strategy, paths, description, schema }: {
-    strategy: StrategyOptionType;
-    paths: FilePathType[];
-    description: string;
-    schema: Record<string, unknown>;
-  },
-) {
+async function extractStructureFromPdfs({
+  strategy,
+  paths,
+  description,
+  schema,
+}: {
+  strategy: StrategyOptionType;
+  paths: FilePathType[];
+  description: string;
+  schema: Record<string, unknown>;
+}) {
   const pdfB64s = await Promise.all(
     paths.map(({ filename, bucket_path }) =>
       getPdfFileB64(filename, bucket_path)
-    ),
+    )
   );
 
   const extractions = await Promise.all(
     pdfB64s.map(({ filename, blob }) =>
       extractFromPdf({ strategy, filename, blob, description, schema })
-    ),
+    )
   );
   const instances = extractions.flat();
   return { instances };
@@ -276,9 +275,8 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
 
     case "number":
     case "integer":
-      let numberSchema = schema.type === "integer"
-        ? z.number().int()
-        : z.number();
+      let numberSchema =
+        schema.type === "integer" ? z.number().int() : z.number();
 
       if (schema.minimum !== undefined) {
         numberSchema = numberSchema.min(schema.minimum);
@@ -365,7 +363,7 @@ async function processMessage(message: ExtractionMessageType) {
     await updatePipelineRunStatus(
       runId,
       "failed",
-      `Error message: ${JSON.stringify(error)}`,
+      `Error message: ${JSON.stringify(error)}`
     );
   }
   await updatePipelineRunStatus(runId, "completed");
@@ -375,17 +373,17 @@ async function processAllMessages(messages: any) {
   await Promise.all(
     messages.map(({ message }: { message: ExtractionMessageType }) =>
       processMessage(message)
-    ),
+    )
   );
   const msgIds = messages.map(({ msg_id }: { msg_id: string }) => {
     return msg_id;
   });
-  const { error: deleteMsgsError } = await supabase.schema(
-    "pgmq",
-  ).rpc("delete", {
-    queue_name: "extraction",
-    msg_ids: msgIds,
-  });
+  const { error: deleteMsgsError } = await supabase
+    .schema("pgmq")
+    .rpc("delete", {
+      queue_name: "extraction",
+      msg_ids: msgIds,
+    });
   if (deleteMsgsError) {
     throw new Error("there was an error with queued message");
   }
@@ -403,8 +401,7 @@ Deno.serve(async (_) => {
 
   // EdgeRuntime.waitUntil(processAllMessages(data));
   await processAllMessages(data);
-  return new Response(
-    JSON.stringify({ started: true }),
-    { headers: { "Content-Type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ started: true }), {
+    headers: { "Content-Type": "application/json" },
+  });
 });

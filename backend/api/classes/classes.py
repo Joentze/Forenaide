@@ -1,7 +1,7 @@
 """
 base models of pipeline, templates
 """
-from uuid import UUID, uuid4
+from uuid import UUID
 from typing import Any, Dict, Optional, List
 from enum import StrEnum
 
@@ -25,7 +25,7 @@ class CreateTemplate(BaseModel):
     """
     name: str
     description: str
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
 
 
 class UpdateTemplate(BaseModel):
@@ -34,7 +34,7 @@ class UpdateTemplate(BaseModel):
     """
     name: str
     description: str
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
 
 
 class TemplateResponse(CreateTemplate):
@@ -71,7 +71,7 @@ class CreatePipelineRun(BaseModel):
     name: str
     description: Optional[str] = None
     strategy_id: UUID
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
     file_paths: List[PipelineFilePath] = Field(..., min_length=1)
 
@@ -83,18 +83,20 @@ class PipelineRunResponse(BaseModel):
     id: UUID
     name: str
     description: str
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
     status: PipelineStatus
     file_paths: List[PipelineFilePath]
     strategy_id: UUID
     started_at: str
     completed_at: str
 
+
 class OutputResponse(BaseModel):
     id: UUID
     uri: str
     pipeline_id: UUID
     created_at: str
+
 
 class OutputWithPipelineResponse(BaseModel):
     """
@@ -113,6 +115,8 @@ class StrategyResponse(BaseModel):
     strategy: str
     name: str
     description: str
+
+
 class PipelineSourceAssoc(BaseModel):
     """
     base model for source association

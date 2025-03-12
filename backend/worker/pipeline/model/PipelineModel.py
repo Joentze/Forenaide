@@ -34,7 +34,7 @@ class CreatePipelineRun(BaseModel):
     name: str
     description: Optional[str] = None
     strategy_id: UUID
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
@@ -48,7 +48,7 @@ class PipelineRunResponse(BaseModel):
     id: UUID
     name: str
     description: str
-    extraction_schema: Dict[str, Any]
+    schema: Dict[str, Any]
     status: PipelineStatus
     strategy_id: UUID
     started_at: str

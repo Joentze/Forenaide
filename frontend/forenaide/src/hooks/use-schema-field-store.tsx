@@ -12,7 +12,7 @@ interface FileStoreState {
 }
 
 const useSchemaFieldStore = create<FileStoreState>()((set) => ({
-  configStrategy: "",
+  configStrategy: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
   configDescription: "Extract the relevant fields for this document",
   config: [],
   setConfig: (createdConfig) => set(() => ({ config: createdConfig })),
@@ -24,7 +24,7 @@ const useSchemaFieldStore = create<FileStoreState>()((set) => ({
     })),
   reset: () =>
     set(() => ({
-      configStrategy: "",
+      configStrategy: "86a1b98b-b3fe-4f92-96e2-0fbe141fe669",
       configDescription: "Extract the relevant fields for this document",
       config: [],
     })),
