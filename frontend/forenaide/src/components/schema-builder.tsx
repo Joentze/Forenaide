@@ -237,7 +237,7 @@ const FieldComponent: React.FC<{
 };
 
 const SchemaBuilder: React.FC = () => {
-  const { setConfig, setConfigDescription } = useSchemaFieldStore();
+  const { config, setConfig, setConfigDescription } = useSchemaFieldStore();
   const [schema, setSchema] = useState<SchemaField[]>([]);
   const [description, setDescription] = useState<string>(
     `Extract the relevant fields for this document`
@@ -246,6 +246,10 @@ const SchemaBuilder: React.FC = () => {
     console.log("updating...");
     setConfig(schema);
   }, [schema, setConfig]);
+
+  useEffect(() => {
+    setSchema(config);
+  }, [config]);
 
   const handleAddField = () => {
     setSchema([...schema, { name: "", description: "", type: "string" }]);
