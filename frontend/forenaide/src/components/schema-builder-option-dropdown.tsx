@@ -30,6 +30,7 @@ import { Label } from "./ui/label";
 import { Select } from "./ui/select";
 import { useState } from "react";
 import { GenerateTemplateDialogContent } from "./template/generate-template-dialog-content";
+import { XlsxTemplateDialogContent } from "./template/xlsx-template-dialog-content";
 
 export function SchemaOptionDropdown({
   children,
@@ -63,7 +64,6 @@ export function SchemaOptionDropdown({
                   <DropdownMenuSubContent className="flex flex-col">
                     <DialogTrigger>
                       <DropdownMenuItem
-                        disabled
                         onClick={() => setDialogContentSelect("xlsx")}
                       >
                         Import from
@@ -87,6 +87,7 @@ export function SchemaOptionDropdown({
         </DropdownMenu>
         {dialogContentSelect === "ai" && <GenerateTemplateDialogContent />}
         {dialogContentSelect === "saved" && <ApplyTemplateDialogContent />}
+        {dialogContentSelect === "xlsx" && <XlsxTemplateDialogContent />}
       </Dialog>
     </>
   );
