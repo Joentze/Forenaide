@@ -35,6 +35,7 @@ class UpdateTemplate(BaseModel):
     name: str
     description: str
     schema: Dict[str, Any]
+    last_updated_at: str
 
 
 class TemplateResponse(CreateTemplate):
