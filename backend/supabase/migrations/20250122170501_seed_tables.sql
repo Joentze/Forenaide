@@ -3,7 +3,8 @@ create table templates (
     name varchar(100) not null,
     description text not null,
     schema json not null,
-    created_at timestamp default current_timestamp not null
+    created_at timestamp default current_timestamp not null,
+    last_updated_at timestamp
 );
 
 create table strategies (

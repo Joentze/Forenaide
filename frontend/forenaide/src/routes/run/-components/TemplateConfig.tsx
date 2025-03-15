@@ -10,6 +10,8 @@ import * as XLSX from "xlsx";
 import { SaveTemplateModal } from "./SaveTemplateModal";
 import { current } from "immer";
 import SchemaBuilder from "@/components/schema-builder";
+import { Separator } from "@/components/ui/separator";
+import SchemaAccordian from "@/components/schema-accordion";
 
 export interface SchemaItem {
   name: string;
@@ -207,7 +209,13 @@ export default function TemplateConfig({
 
   return (
     <div>
-      <SchemaBuilder />
+      <SchemaBuilder
+        description={
+          "Click 'Add New Field' to start defining extraction schema"
+        }
+      />
+      <Separator className="mt-8" />
+      <SchemaAccordian />
       <SaveTemplateModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -46,6 +46,7 @@ import { SchemaOptionDropdown } from "./schema-builder-option-dropdown";
 import { ExtractionSelect } from "./schema-extraction-strategy-select";
 import { SaveTemplateDialog } from "./template/save-template-dialog";
 import { Skeleton } from "./ui/skeleton";
+import SchemaAccordian from "./schema-accordion";
 
 export const schemaZodSchema: z.ZodType<SchemaField> = z.lazy(() =>
   z.object({
@@ -237,13 +238,16 @@ const FieldComponent: React.FC<{
   );
 };
 
-const SchemaBuilder: React.FC = () => {
-  const { loading, config, setConfig, setConfigDescription } =
-    useSchemaFieldStore();
+interface ISchemaBuilder {
+  description: string;
+  hasSaveButton?: boolean;
+}
 
-  const [description, setDescription] = useState<string>(
-    `Extract the relevant fields for this document`
-  );
+const SchemaBuilder: React.FC<ISchemaBuilder> = ({
+  description,
+  hasSaveButton = true,
+}) => {
+  const { loading, config, setConfig } = useSchemaFieldStore();
 
   const handleAddField = () => {
     setConfig([...config, { name: "", description: "", type: "string" }]);
@@ -285,25 +289,30 @@ const SchemaBuilder: React.FC = () => {
   return (
     <div className="">
       <div className="flex flex-row gap-2 mb-4">
-        <p className="text-gray-500 my-auto">
-          Click "Add New Field" to start defining extraction schema
-        </p>
+        <p className="text-gray-500 my-auto">{description}</p>
 
         <div className="flex-grow" />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SaveTemplateDialog>
-                <Button className="my-auto" size={"icon"} variant={"outline"}>
-                  <Save />
-                </Button>
-              </SaveTemplateDialog>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Save as New Template</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {hasSaveButton && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SaveTemplateDialog>
+                  <Button
+                    className="my-auto"
+                    size={"icon"}
+                    variant={"ghost"}
+                    disabled={config.length === 0}
+                  >
+                    <Save />
+                  </Button>
+                </SaveTemplateDialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save as New Template</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
       {loading && (
         <div className="my-8 space-y-2">
@@ -339,27 +348,6 @@ const SchemaBuilder: React.FC = () => {
           </Button>
         </SchemaOptionDropdown>
       </div>
-      <Separator className="mt-8" />
-      <Accordion type="single" collapsible>
-        <AccordionItem value="item-1">
-          <AccordionTrigger>Description</AccordionTrigger>
-          <AccordionContent>
-            <Textarea
-              value={description}
-              onChange={(event) => {
-                setDescription(event.target.value);
-                setConfigDescription(event.target.value);
-              }}
-            ></Textarea>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Advanced Settings</AccordionTrigger>
-          <AccordionContent>
-            <ExtractionSelect />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
     </div>
   );
 };

@@ -86,7 +86,8 @@ const pipelineBodySchema = z.object({
 });
 
 function PipelineComponent() {
-  const { configDescription, configStrategy, config } = useSchemaFieldStore();
+  const { configDescription, configStrategy, config, reset } =
+    useSchemaFieldStore();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [configFile, setConfigFile] = React.useState<File | null>(null);
@@ -301,6 +302,7 @@ function PipelineComponent() {
               formRef.current?.reportValidity();
               if (formRef.current?.checkValidity()) {
                 submitPipeline(pipelineRequest);
+                reset();
               }
             }}
           >

@@ -20,16 +20,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { SchemaField } from "@/types/schema-field";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
-
-export const templateResponseSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string(),
-  schema: z.object({ fields: z.array(z.record(z.any())) }),
-  created_at: z.string().datetime(),
-});
-
-export type TemplateResponseType = z.infer<typeof templateResponseSchema>;
+import { TemplateResponseType } from "@/types/template-field";
 
 export function ApplyTemplateDialogContent() {
   const { toast } = useToast();

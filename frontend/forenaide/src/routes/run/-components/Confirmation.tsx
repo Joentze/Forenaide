@@ -1,11 +1,14 @@
 import { FileInfo, useFileStore } from "./FileUpload";
 import { Ref, useEffect, useState } from "react";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, File } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { SchemaItem } from "./TemplateConfig";
 import { Input } from "@/components/ui/input";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { SchemaField } from "@/types/schema-field";
+import FieldRenderer from "@/components/field/field-renderer";
+import { Label } from "@radix-ui/react-label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export type FilePath = {
   uri?: string;
@@ -113,28 +116,35 @@ export default function Confirmation({
         {/* <h3 className="mb-4 text-lg font-bold">Confirmation</h3> */}
         <p className="mb-4">Review the details below before proceeding:</p>
         <section className="flex flex-col gap-2 items-start">
-          <h4 className="font-semibold mb-2">Name the pipeline:</h4>
           <form ref={formRef}>
-            <Input
-              type="text"
-              placeholder="Pipeline for ..."
-              name="pipelineName"
-              className="w-80 mb-3"
-              value={pipelineRequest?.name ?? ""}
-              onChange={(e) => setPipelineName(e.target.value)}
-              required
-            ></Input>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="pipelineName" className="font-bold">
+                Pipeline Name
+              </Label>
+              <Input
+                id="pipelineName"
+                type="text"
+                placeholder=""
+                name="pipelineName"
+                className="w-80 mb-3"
+                value={pipelineRequest?.name ?? ""}
+                onChange={(e) => setPipelineName(e.target.value)}
+                required
+              />
+            </div>
           </form>
         </section>
         <h4 className="font-semibold mb-2">Selected Files:</h4>
-        <ul className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {storedFiles.map((file, index) => (
-            <li key={index} className="bg-gray-100 p-2 rounded">
-              {file.fileObj?.name} (
-              {((file.fileObj?.size as number) / 1024).toFixed(2)} KB)
-            </li>
+            <div className="border rounded-md p-2 flex flex-row gap-2">
+              <File className="my-auto text-gray-500 min-w-8" />
+              <div className="flex flex-col w-full max-w-72">
+                <p className="font-mono truncate ">{file.filename}</p>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
         {/* {configFile && (
           <>
             <h4 className="font-semibold mt-4 mb-2">Template File:</h4>
@@ -144,23 +154,31 @@ export default function Confirmation({
           </>
         )} */}
 
-        {config && (
-          <div className="mt-4">
-            <h4 className="font-semibold mb-2">Extraction Schema:</h4>
-            <ul className="space-y-2">
+        <div className="mt-8">
+          <p className="font-bold mb-2">Defined Schema</p>
+          {config && (
+            <div className="border p-4 rounded-md">
               {config.map((field, index) => (
-                <li key={index} className="bg-gray-100 p-2 rounded">
-                  <span className="font-semibold">{field.name} </span>(
-                  {field.type})
-                  <span className="text-sm opacity-50">
-                    {" "}
-                    {field.description}
-                  </span>
-                </li>
+                <FieldRenderer key={index} field={field} />
               ))}
-            </ul>
-          </div>
-        )}
+            </div>
+            // <div className="mt-4">
+            //   <h4 className="font-semibold mb-2">Extraction Schema:</h4>
+            //   <ul className="space-y-2">
+            //     {config.map((field, index) => (
+            //       <li key={index} className="bg-gray-100 p-2 rounded">
+            //         <span className="font-semibold">{field.name} </span>(
+            //         {field.type})
+            //         <span className="text-sm opacity-50">
+            //           {" "}
+            //           {field.description}
+            //         </span>
+            //       </li>
+            //     ))}
+            //   </ul>
+            // </div>
+          )}
+        </div>
       </div>
     </>
   );
