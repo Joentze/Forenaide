@@ -36,6 +36,7 @@ export default function EditTemplateDialogContent({
   const [name, setName] = useState<string>(templateName);
   const [description, setDescription] = useState<string>(templateDescription);
   const { setConfig, reset, config: fields } = useSchemaFieldStore();
+
   useEffect(() => {
     setConfig(template.schema.fields as SchemaField[]);
     return () => {

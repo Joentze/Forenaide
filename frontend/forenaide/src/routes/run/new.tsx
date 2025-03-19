@@ -302,6 +302,7 @@ function PipelineComponent() {
               formRef.current?.reportValidity();
               if (formRef.current?.checkValidity()) {
                 submitPipeline(pipelineRequest);
+                clearFiles();
                 reset();
               }
             }}

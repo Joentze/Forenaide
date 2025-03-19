@@ -23,13 +23,11 @@ import { Buffer } from "node:buffer";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_ANON_KEY")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!
 );
 
 const mimetypes: Record<string, string[]> = {
-  html: [
-    "text/html",
-  ],
+  html: ["text/html"],
   office: [
     "application/vnd.lotus-1-2-3",
     "application/x-t602",
@@ -186,7 +184,7 @@ Deno.serve(async (req) => {
       {
         status: 400,
         headers: { "content-type": "application/json" },
-      },
+      }
     );
   }
 
@@ -222,7 +220,7 @@ Deno.serve(async (req) => {
         {
           status: 415,
           headers: { "content-type": "application/json" },
-        },
+        }
       );
     }
     if (fileType === undefined) {
@@ -241,12 +239,10 @@ Deno.serve(async (req) => {
           url: `https://demo.gotenberg.dev${path}`,
         }),
         set(filename(fileName)),
-        please,
+        please
       );
       const buffer = Buffer.from(fileArrBuff);
-      const pdfStream = await gotenbergPipe(
-        buffer,
-      );
+      const pdfStream = await gotenbergPipe(buffer);
       const chunks = [];
       for await (const chunk of pdfStream) {
         chunks.push(chunk);
@@ -272,14 +268,14 @@ Deno.serve(async (req) => {
     }
 
     // Get the public URL if needed
-    const { data: { publicUrl } } = supabase.storage
-      .from("sources")
-      .getPublicUrl(filePath);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("sources").getPublicUrl(filePath);
 
     const { data: fileInsertData, error: fileInsertError } = await supabase
-      .from("data_sources").insert(
-        { filename: file.name, path: filePath, mimetype: file.type },
-      ).select();
+      .from("data_sources")
+      .insert({ filename: file.name, path: filePath, mimetype: file.type })
+      .select();
 
     if (fileInsertError) {
       throw new Error(JSON.stringify(fileInsertError));
@@ -291,7 +287,7 @@ Deno.serve(async (req) => {
       }),
       {
         headers: { ...corsHeaders, "content-type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     console.error("Error processing upload:", error);
