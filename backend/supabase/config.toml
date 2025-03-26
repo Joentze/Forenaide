@@ -271,6 +271,15 @@ policy = "oneshot"
 inspector_port = 8083
 
 # Use these configurations to customize your Edge Function.
+[functions.upload-file-as-pdf]
+verify_jwt = false
+
+[functions.extract-structure-from-pdf]
+verify_jwt = false
+
+[functions.generate-schema]
+verify_jwt = false
+
 # [functions.MY_FUNCTION_NAME]
 # enabled = true
 # verify_jwt = true
