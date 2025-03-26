@@ -20,6 +20,7 @@ create table pipeline_runs (
     description text,
     strategy_id uuid not null,
     schema json not null,
+    fields json not null,
     status varchar(255) not null,
     started_at timestamp default current_timestamp not null,
     completed_at timestamp default current_timestamp not null,

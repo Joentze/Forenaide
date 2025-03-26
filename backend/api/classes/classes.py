@@ -63,6 +63,7 @@ class PipelineFilePath(BaseModel):
     mimetype: str
     bucket_path: str
     filename: str
+    size: Optional[int] = None
 
 
 class CreatePipelineRun(BaseModel):
@@ -73,6 +74,7 @@ class CreatePipelineRun(BaseModel):
     description: Optional[str] = None
     strategy_id: UUID
     schema: Dict[str, Any]
+    fields: List[Dict[str, Any]]
     status: PipelineStatus = PipelineStatus.NOT_STARTED
     file_paths: List[PipelineFilePath] = Field(..., min_length=1)
 
@@ -85,6 +87,7 @@ class PipelineRunResponse(BaseModel):
     name: str
     description: str
     schema: Dict[str, Any]
+    fields: List[Dict[str, Any]]
     status: PipelineStatus
     file_paths: List[PipelineFilePath]
     strategy_id: UUID

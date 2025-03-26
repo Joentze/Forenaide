@@ -401,6 +401,7 @@ Deno.serve(async (_) => {
 
   // EdgeRuntime.waitUntil(processAllMessages(data));
   await processAllMessages(data);
+  
   return new Response(JSON.stringify({ started: true }), {
     headers: { "Content-Type": "application/json" },
   });

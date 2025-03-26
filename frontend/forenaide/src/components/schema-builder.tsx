@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "./ui/accordion";
 
-import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -30,8 +23,7 @@ import {
 } from "./ui/select";
 import { Trash2 } from "lucide-react";
 import { z } from "zod";
-import { Textarea } from "./ui/textarea";
-import { Separator } from "./ui/separator";
+
 import { cn } from "../lib/utils";
 import React from "react";
 import { SchemaField, FieldType } from "@/types/schema-field";
@@ -43,10 +35,10 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { SchemaOptionDropdown } from "./schema-builder-option-dropdown";
-import { ExtractionSelect } from "./schema-extraction-strategy-select";
+
 import { SaveTemplateDialog } from "./template/save-template-dialog";
 import { Skeleton } from "./ui/skeleton";
-import SchemaAccordian from "./schema-accordion";
+
 
 export const schemaZodSchema: z.ZodType<SchemaField> = z.lazy(() =>
   z.object({

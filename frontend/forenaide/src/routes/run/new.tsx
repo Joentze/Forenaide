@@ -6,15 +6,49 @@ import FileUpload, { FileStatus, useFileStore } from "./-components/FileUpload";
 // import ConfigUpload from './-components/ConfigUpload'
 import Confirmation, {
   CreatePipelineRequest,
+  FilePath,
 } from "./-components/Confirmation";
 import { useToast } from "@/hooks/use-toast";
 import { File as LRFile, Settings, CheckCircle } from "lucide-react";
 import TemplateConfig, { SchemaItem } from "./-components/TemplateConfig";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { z } from "zod";
+import { SchemaField } from "@/types/schema-field";
 
 export const Route = createFileRoute("/run/new")({
-  component: PipelineComponent,
+  // component: PipelineComponent,
+  component: () => {
+    const { initialFiles, initialTemplateFields } = Route.useLoaderData();
+    return PipelineComponent({
+      initialFiles: initialFiles ?? [],
+      initialTemplateFields: initialTemplateFields ?? [],
+    });
+  },
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      rerun: search.rerun as string,
+    };
+  },
+  loaderDeps: ({ search: { rerun } }) => ({ rerun }),
+  loader: async ({ deps: { rerun } }) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/pipelines/${rerun}`);
+      const data = await res.json();
+      console.log(data);
+      const { fields, file_paths: filePaths } = data as CreatePipelineRequest;
+      console.log(fields);
+      return {
+        initialFiles: (filePaths as FilePath[]) ?? [],
+        initialTemplateFields: fields ?? [],
+      };
+    } catch (error) {
+      console.error("Error fetching pipeline data:", error);
+      return {
+        initialFiles: [],
+        initialTemplateFields: [],
+      };
+    }
+  },
 });
 
 interface Step {
@@ -85,9 +119,16 @@ const pipelineBodySchema = z.object({
   ),
 });
 
-function PipelineComponent() {
-  const { configDescription, configStrategy, config, reset } =
+function PipelineComponent({
+  initialFiles = [],
+  initialTemplateFields = [],
+}: {
+  initialFiles: FilePath[];
+  initialTemplateFields: SchemaField[];
+}) {
+  const { configDescription, configStrategy, config, reset, setConfig } =
     useSchemaFieldStore();
+  const { fromFilePaths } = useFileStore();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [configFile, setConfigFile] = React.useState<File | null>(null);
@@ -95,7 +136,11 @@ function PipelineComponent() {
     { name: "default.csv", size: 1024 },
     { name: "default2.xlsx", size: 2048 },
   ]);
-
+  React.useEffect(() => {
+    console.log(initialFiles, initialTemplateFields);
+    setConfig(initialTemplateFields);
+    fromFilePaths(initialFiles);
+  }, [initialFiles, initialTemplateFields]);
   const files = useFileStore((state) => state.files);
   const clearFiles = useFileStore((state) => state.clearFiles);
   const uploadedFiles = React.useMemo(

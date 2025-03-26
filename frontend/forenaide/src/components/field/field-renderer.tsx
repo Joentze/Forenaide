@@ -18,7 +18,7 @@ export default function FieldRenderer({
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
-  };
+  }; 
 
   const hasChildren =
     (field.type === "object" && field.properties) ||

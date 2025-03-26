@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { SchemaItem } from "./TemplateConfig";
 import { Input } from "@/components/ui/input";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
-import { SchemaField } from "@/types/schema-field";
+import { FieldType, SchemaField } from "@/types/schema-field";
 import FieldRenderer from "@/components/field/field-renderer";
 import { Label } from "@radix-ui/react-label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ export type FilePath = {
   mimetype: string;
   bucket_path: string;
   filename: string;
+  size?: number;
 };
 
 export type CreatePipelineRequest = {
@@ -22,6 +23,7 @@ export type CreatePipelineRequest = {
   description: string;
   strategy_id: string;
   schema: Record<string, unknown>;
+  fields: SchemaField[];
   file_paths: Partial<FilePath>[];
 };
 
@@ -82,6 +84,7 @@ export default function Confirmation({
         description,
         properties: formatSchema(config),
       },
+      fields: config,
       file_paths,
     };
     setPipelineRequest(body);
