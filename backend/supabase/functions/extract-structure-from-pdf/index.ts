@@ -12,7 +12,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_ANON_KEY")!
 );
 
-const strategyOptions = z.enum(["claude:pdf", "gemini:pdf"]);
+const strategyOptions = z.enum(["claude:pdf", "gemini:pdf", "openai:pdf"]);
 
 type StrategyOptionType = z.infer<typeof strategyOptions>;
 
