@@ -51,6 +51,12 @@ VALUES
         'claude:pdf',
         'Claude PDF extraction',
         'Strategy for extracting structure from pdf using Claude 3.5 Sonnet'
+    ),
+    (
+        '86a1b98b-b3fe-4f92-96e2-0fbe141fe668',
+        'openai:pdf',
+        'OpenAI 4o PDF extraction',
+        'Strategy for extracting structure from pdf using OpenAI GPT-4o'
     );
 
 -- (

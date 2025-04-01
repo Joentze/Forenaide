@@ -13,7 +13,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_ANON_KEY")!
 );
 
-const strategyOptions = z.enum(["claude:pdf", "gemini:pdf"]);
+const strategyOptions = z.enum(["claude:pdf", "gemini:pdf", "openai:pdf"]);
 
 type StrategyOptionType = z.infer<typeof strategyOptions>;
 
@@ -401,7 +401,7 @@ Deno.serve(async (_) => {
 
   // EdgeRuntime.waitUntil(processAllMessages(data));
   await processAllMessages(data);
-  
+
   return new Response(JSON.stringify({ started: true }), {
     headers: { "Content-Type": "application/json" },
   });

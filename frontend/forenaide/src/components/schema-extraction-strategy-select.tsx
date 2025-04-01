@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
-import { RiAnthropicFill, RiRobot2Fill } from "react-icons/ri";
+import { RiAnthropicFill, RiOpenaiFill, RiRobot2Fill } from "react-icons/ri";
 
 import {
   Select,
@@ -35,11 +35,19 @@ const defaultStrategies: Strategy[] = [
     description:
       "Strategy for extracting structure from pdf using Claude 3.5 Sonnet",
   },
+  {
+    id: "86a1b98b-b3fe-4f92-96e2-0fbe141fe668",
+    strategy: "openai:pdf",
+    name: "OpenAI PDF extraction",
+    description:
+      "Strategy for extracting structure from pdf using OpenAI GPT-4o",
+  },
 ];
 
 const modelIconMap: { [key: string]: JSX.Element } = {
   gemini: <FaGoogle />,
   claude: <RiAnthropicFill />,
+  openai: <RiOpenaiFill />,
   // Add more mappings as needed
 };
 
