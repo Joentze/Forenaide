@@ -3,7 +3,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod";
 import { LLMProviderMap } from "../_shared/extraction.ts";
-import { convertToString } from "npm:@sean-lim/jsontocsv"
+import { convertToString } from "./convert.ts";
 import { generateText, LanguageModel, tool } from "npm:ai";
 import { createClient } from "npm:@supabase/supabase-js";
 
@@ -87,7 +87,9 @@ async function uploadResultFiles(
     const { instances: rows } = result;
 
     const newFilename = name.replace(/[^a-zA-Z0-9]/g, "_");
+    console.log(rows)
     const csvString = convertToString(rows);
+    console.log(csvString)
 
     const jsonString = JSON.stringify(result);
 
