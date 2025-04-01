@@ -174,7 +174,13 @@ export function XlsxTemplateDialogContent() {
             title: "Success",
             description: "Schema fields successfully added!",
         });
+        resetSchemaFields();
     };
+
+    const resetSchemaFields = () => {
+        setSchemaFields([])
+    };
+
     return (
         <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -208,11 +214,18 @@ export function XlsxTemplateDialogContent() {
                 </div>
             )}
             <DialogFooter>
-                <DialogClose>
-                    <Button type="button" onClick={onConfirm}>
-                        Confirm
-                    </Button>
-                </DialogClose>
+                <span className="w-full flex justify-between">
+                    <DialogClose>
+                        <Button type="button" variant="secondary" onClick={resetSchemaFields}>
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <DialogClose>
+                        <Button type="button" onClick={onConfirm}>
+                            Confirm
+                        </Button>
+                    </DialogClose>
+                </span>
             </DialogFooter>
         </DialogContent>
     );
