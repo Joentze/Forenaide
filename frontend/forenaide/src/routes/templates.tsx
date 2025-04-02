@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import FieldRenderer from "@/components/field/field-renderer";
 import EditTemplateDialogContent from "@/components/template/edit-template-dialog-content";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/templates")({
   component: TemplatesComponent,
@@ -398,8 +399,8 @@ function TemplatesComponent() {
                         <TableCell>
                           {template.last_updated_at
                             ? new Date(
-                                template.last_updated_at
-                              ).toLocaleDateString()
+                              template.last_updated_at
+                            ).toLocaleDateString()
                             : "-"}
                         </TableCell>
                         <TableCell>

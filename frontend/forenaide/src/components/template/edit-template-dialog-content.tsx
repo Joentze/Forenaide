@@ -84,7 +84,7 @@ export default function EditTemplateDialogContent({
     return;
   };
   return (
-    <DialogContent>
+    <DialogContent className="max-w-[60vw]">
       <DialogHeader>
         <DialogTitle className="flex flex-row gap-2">
           Edit Template
@@ -112,7 +112,7 @@ export default function EditTemplateDialogContent({
       </div>
       <div className="grid w-full items-center gap-1.5 ">
         <Label htmlFor="schema">Schema</Label>
-        <ScrollArea className="overflow-y-scroll max-h-72 border p-2 rounded-md">
+        <ScrollArea className="overflow-y-scroll max-h-[60vh] border p-2 rounded-md">
           <SchemaBuilder description="" hasSaveButton={false} />
         </ScrollArea>
       </div>
