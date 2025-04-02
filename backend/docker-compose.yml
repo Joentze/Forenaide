@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: rabbitmq
+  #   ports:
+  #     - "5672:5672" # RabbitMQ main port
+  #     - "15672:15672" # RabbitMQ management UI
+  extract_pdf_runtime:
+    env_file:
+      - .env
+    container_name: extract_pdf_runtime
+    build:
+      context: ./supabase
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+
+  # convert_to_pdf:
+  #   # env_file:
+  #   #   - .env
+  #   container_name: convert_to_pdf
+  #   build:
+  #     context: ./supabase
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "9001:9000"
+  #   command: ["start", "--main-service", "/examples/convert-document-to-pdf"]
+  # worker:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: ./worker
+  #     dockerfile: Dockerfile
+  #   container_name: worker
+  #   depends_on:
+  #     - rabbitmq
+  #   restart: always
+  #   volumes:
+  #     - "./worker:/worker"
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8000:8000" # FastAPI server port
+
+    volumes:
+      - "./api:/api"
+    env_file:
+      - .env
+    # depends_on:
+    #   - rabbitmq
+    restart: always
