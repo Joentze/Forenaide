@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import FieldRenderer from "@/components/field/field-renderer";
 import EditTemplateDialogContent from "@/components/template/edit-template-dialog-content";
+import { apiEndpoint } from "@/lib/api";
 
 export const Route = createFileRoute("/templates")({
   component: TemplatesComponent,
@@ -69,12 +70,9 @@ export const Route = createFileRoute("/templates")({
 
 export const deleteTemplate = async (templateId: string) => {
   try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/templates/${templateId}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${apiEndpoint}/templates/${templateId}`, {
+      method: "DELETE",
+    });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -130,7 +128,7 @@ function TemplatesComponent() {
   const retrieveExistingTemplates = async () => {
     setIsLoading(true);
 
-    const get_template_url = "http://127.0.0.1:8000/templates";
+    const get_template_url = `${apiEndpoint}/templates`;
 
     try {
       const response = await fetch(get_template_url);

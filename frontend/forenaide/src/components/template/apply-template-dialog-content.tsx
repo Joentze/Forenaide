@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SchemaField } from "@/types/schema-field";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { TemplateResponseType } from "@/types/template-field";
+import { apiEndpoint } from "@/lib/api";
 
 export function ApplyTemplateDialogContent() {
   const { toast } = useToast();
@@ -31,7 +32,7 @@ export function ApplyTemplateDialogContent() {
   useEffect(() => {
     const getTemplates = async () => {
       setIsLoading(true);
-      const get_template_url = "http://127.0.0.1:8000/templates";
+      const get_template_url = `${apiEndpoint}/templates`;
 
       try {
         const response = await fetch(get_template_url);
