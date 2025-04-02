@@ -12,6 +12,7 @@ import { current } from "immer";
 import SchemaBuilder from "@/components/schema-builder";
 import { Separator } from "@/components/ui/separator";
 import SchemaAccordian from "@/components/schema-accordion";
+import { apiEndpoint } from "@/lib/api";
 
 export interface SchemaItem {
   name: string;
@@ -92,7 +93,7 @@ export default function TemplateConfig({
    * @returns JSON response of request | null
    */
   const retrieveExistingTemplates = async () => {
-    const get_template_url = "http://127.0.0.1:8000/templates";
+    const get_template_url = `${apiEndpoint}/templates`;
 
     let dataToReturn = null;
     try {
@@ -124,7 +125,7 @@ export default function TemplateConfig({
   // Modify the saveTemplate function
   const saveTemplate = async (name: string, description: string) => {
     if (!saveTemplateButtonActive) return null;
-    const create_template_url = "http://127.0.0.1:8000/templates";
+  const create_template_url = `${apiEndpoint}/templates`;
 
     let dataToReturn = null;
     try {

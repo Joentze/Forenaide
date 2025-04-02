@@ -1,5 +1,6 @@
 import { FileInfo, FileStore } from "@/routes/run/-components/FileUpload";
 import { createJSONStorage } from "zustand/middleware";
+import { supabaseEdgeFunctionEndpoint } from "./api";
 
 export type FileUploadResponse = {
   id: string;
@@ -15,7 +16,7 @@ export async function uploadFile(
   file: File
 ): Promise<never | FileUploadResponse> {
   const res = await fetch(
-    "http://127.0.0.1:54321/functions/v1/upload-file-as-pdf",
+    `${supabaseEdgeFunctionEndpoint}/upload-file-as-pdf`,
     {
       method: "POST",
       // add file to body
