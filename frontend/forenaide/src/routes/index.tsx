@@ -80,17 +80,18 @@ function HomeComponent() {
         <Card className="w-full h-full">
           <Tabs defaultValue="results">
             <CardHeader>
-              <CardTitle>Run Dashboard</CardTitle>
-              <div className="flex items-center justify-between mt-4 gap-4">
-                <TabsList>
-                  <TabsTrigger value="results">Runs</TabsTrigger>
-                  <TabsTrigger value="log">Activity Log</TabsTrigger>
-                </TabsList>
-                <Button onClick={() => navigate({ to: "/run/new" })}>
-                  <Plus />
-                  New Run
-                </Button>
-              </div>
+              <CardTitle className="flex items-center justify-between mt-4 gap-4">
+                <p className="text-3xl">Extraction Runs</p>
+                <div className="my-auto">
+                  <Button
+                    onClick={() => navigate({ to: "/run/new" })}
+                    className="ml-auto"
+                  >
+                    <Plus />
+                    New Run
+                  </Button>
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <TabsContent value="results">
