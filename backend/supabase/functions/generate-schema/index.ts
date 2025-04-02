@@ -1,6 +1,6 @@
 // index.ts - Supabase Edge Function
 import { generateText, tool } from "npm:ai";
-import { google } from "npm:@ai-sdk/google";
+import { openai } from "npm:@ai-sdk/openai";
 import { z } from "npm:zod";
 import { corsHeaders } from "../_shared/cors.ts";
 
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   }
   try {
     // Parse the request body
-    const { prompt } = await req.json();
+    const { prompt, fileUrls } = await req.json();
 
     if (!prompt) {
       return new Response(
@@ -80,11 +80,11 @@ Deno.serve(async (req) => {
       }
       
       Return a valid JSON array of SchemaField objects.
-    `;
+      `;
 
     // Generate schema fields using AI
     await generateText({
-      model: google("gemini-1.5-flash"),
+      model: openai("gpt-4o-mini"),
       system: systemPrompt,
       toolChoice: "required",
       tools: {
@@ -98,7 +98,24 @@ Deno.serve(async (req) => {
           },
         }),
       },
-      messages: [{ role: "user", content: `PROMPT: ${prompt}` }],
+      messages: [
+        {
+          role: "user",
+          content: [
+            ...fileUrls.map((url) => {
+              return {
+                type: "file",
+                data: url,
+                mimeType: "application/pdf",
+              };
+            }),
+            {
+              type: "text",
+              text: `PROMPT: ${prompt}`,
+            },
+          ],
+        },
+      ],
     });
 
     // Parse and validate the generated schema

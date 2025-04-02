@@ -13,16 +13,13 @@ import { SchemaField } from "@/types/schema-field";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { Textarea } from "../ui/textarea";
 import { Sparkles } from "lucide-react";
+import { useFileStore } from "@/routes/run/-components/FileUpload";
 
 export function GenerateTemplateDialogContent() {
-  const { toast } = useToast();
-  const { concatIntoConfig, generateFields } = useSchemaFieldStore();
+  const { generateFields } = useSchemaFieldStore();
   const [prompt, setPrompt] = useState<string>("");
-  const [selectedFields, setSelectedFields] = useState<SchemaField[]>([]);
+  const { files } = useFileStore();
 
-  const onConfirm = () => {
-    concatIntoConfig(selectedFields);
-  };
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
@@ -44,7 +41,16 @@ export function GenerateTemplateDialogContent() {
         <DialogClose>
           <Button
             type="button"
-            onClick={async () => await generateFields(prompt)}
+            disabled={
+              files.filter(({ downloadUrl }) => downloadUrl !== undefined)
+                .length === 0
+            }
+            onClick={async () =>
+              await generateFields(
+                prompt,
+                files.map(({ downloadUrl }) => downloadUrl) as string[]
+              )
+            }
           >
             Confirm
           </Button>

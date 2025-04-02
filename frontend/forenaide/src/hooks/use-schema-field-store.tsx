@@ -11,7 +11,7 @@ interface FileStoreState {
   setConfigDescription: (description: string) => void;
   setConfigStrategy: (strategyId: string) => void;
   reset: () => void;
-  generateFields: (prompt: string) => void;
+  generateFields: (prompt: string, fileUrls: string[]) => void;
 }
 
 type GeneratedSchemaType = {
@@ -41,7 +41,7 @@ const useSchemaFieldStore = create<FileStoreState>()((set) => ({
       configDescription: "Extract the relevant fields for this document",
       config: [],
     })),
-  generateFields: async (prompt) => {
+  generateFields: async (prompt, fileUrls) => {
     // TODO add in AI prompting to get generated fields
     set(() => ({
       loading: true,
@@ -54,7 +54,7 @@ const useSchemaFieldStore = create<FileStoreState>()((set) => ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, fileUrls }),
       }
     );
     if (!response.ok) {

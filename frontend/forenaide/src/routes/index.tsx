@@ -4,22 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Plus,
-  File,
-  Download,
-  Redo2,
-  Clock,
-  CheckCircle,
-  FileText,
-  Calendar,
-  Table2,
-  RefreshCw,
-} from "lucide-react";
+import { Plus, Download, Redo2, Table2, RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -182,32 +170,6 @@ function HomeComponent() {
             </CardContent>
           </Tabs>
         </Card>
-
-        {/* <Card className="w-full h-full">
-          <CardHeader>
-            <CardTitle>Most Recent Run</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-muted-foreground">Duration</p>
-                <p className="text-lg font-semibold">2 Hours</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className="text-lg font-semibold text-green-500">Success</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-muted-foreground">Files Processed</p>
-                <p className="text-lg font-semibold">12</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <p className="text-sm text-muted-foreground">Started</p>
-                <p className="text-lg font-semibold">3 hours ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
     </div>
   );
@@ -340,7 +302,6 @@ function IncompleteRuns({
           <TableHead className="w-[200px]">Started</TableHead>
           <TableHead className="w-[600px]">Files</TableHead>
           <TableHead className="w-[250px]">Template</TableHead>
-          {/* <TableHead className="">Percentage</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -370,7 +331,7 @@ function IncompleteRuns({
 
             <TableCell>
               <SchemaPreview
-                schema={pipeline.schema}
+                fields={pipeline.fields}
                 trigger={
                   <Button variant="ghost" className="px-0">
                     <Table2 />
@@ -379,10 +340,6 @@ function IncompleteRuns({
                 }
               />
             </TableCell>
-            {/* <TableCell>
-              {mode == Mode.PROCESSING && <Progress value={33} />}
-              {mode == Mode.FAILED && <CheckCircle />}
-            </TableCell> */}
           </TableRow>
         ))}
       </TableBody>

@@ -205,19 +205,6 @@ function PipelineComponent({
   }
 
   const validateTemplate = React.useCallback(() => {
-    // if (templateFields.length === 0) return false;
-    // for (const item of templateFields) {
-    //   if (!["string", "integer", "boolean"].includes(item.type)) return false;
-    //   if (
-    //     item.description === undefined ||
-    //     item.name == undefined ||
-    //     item.type === undefined
-    //   )
-    //     return false;
-    //   if (item.description === "" || item.name === "" || item.type === "")
-    //     return false;
-    // }
-    // return true;
     if (!configStrategy || configStrategy.length <= 0) return false;
     if (!configDescription || configDescription.length <= 0) return false;
     if (config.length === 0) return false;
