@@ -2,7 +2,6 @@
 
 FROM python:3.12
 
-
 COPY ./api/requirements.txt /requirements.txt
 
 # Download the latest installer
@@ -17,6 +16,7 @@ RUN uv pip install --system --no-cache -r requirements.txt
 
 WORKDIR /api
 
-COPY . .
+# Ensure only the necessary files are copied
+COPY ./api /api
 
-CMD ["python", "app.py"]
+CMD ["python", "/api/app.py"]
