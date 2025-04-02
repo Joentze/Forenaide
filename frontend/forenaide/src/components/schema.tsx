@@ -4,35 +4,29 @@ import { Separator } from "./ui/separator";
 import { FilePath } from "@/routes/run/-components/Confirmation";
 import { filePathToDownloadUrl } from "@/lib/utils";
 import { File } from "lucide-react";
+import { SchemaField } from "@/types/schema-field";
+import FieldRenderer from "./field/field-renderer";
 
 interface SchemaPreviewProps {
-  schema: Record<string, unknown>;
+  fields: SchemaField[];
   trigger: React.ReactNode;
 }
 
-export function SchemaPreview({ schema, trigger }: SchemaPreviewProps) {
+export function SchemaPreview({ fields, trigger }: SchemaPreviewProps) {
   return (
     <HoverCard openDelay={100} closeDelay={100}>
       <HoverCardTrigger asChild>{trigger}</HoverCardTrigger>
-      <HoverCardContent className="w-80" side="left">
+      <HoverCardContent className="w-fit" side="left">
         <p className="">Extraction Schema</p>
         <Separator className="my-2" />
         <div className="flex flex-col items-center gap-4 w-full">
-          {/* TODO: FIX SCHEMA PREVIEW */}
-          {/* {schema.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center content-between gap-4 w-full"
-            >
-              <div className="flex-1">
-                <div className="font-bold">{item.name}</div>
-                <div className="text-gray-500">{item.description}</div>
-              </div>
-              <div className="flex items-center gap-2 text-gray-500">
-                <div>{item.type}</div>
-              </div>
+          {fields && (
+            <div className="border p-4 rounded-md">
+              {fields.map((field, index) => (
+                <FieldRenderer key={index} field={field} />
+              ))}
             </div>
-          ))} */}
+          )}
         </div>
       </HoverCardContent>
     </HoverCard>

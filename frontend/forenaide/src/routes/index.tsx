@@ -294,11 +294,11 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
 
             <TableCell>
               <SchemaPreview
-                schema={pipeline.schema}
+                fields={pipeline.fields}
                 trigger={
-                  <Button variant="ghost" className="px-0">
+                  <Button variant="ghost">
                     <Table2 />
-                    Hover to see schema
+                    See Schema
                   </Button>
                 }
               />
