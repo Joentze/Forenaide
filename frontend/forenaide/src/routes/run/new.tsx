@@ -136,11 +136,15 @@ function PipelineComponent({
     { name: "default.csv", size: 1024 },
     { name: "default2.xlsx", size: 2048 },
   ]);
+
   React.useEffect(() => {
-    console.log(initialFiles, initialTemplateFields);
-    setConfig(initialTemplateFields);
-    fromFilePaths(initialFiles);
+    if (initialFiles.length > 0 && initialTemplateFields.length > 0) {
+      console.log(initialFiles, initialTemplateFields);
+      setConfig(initialTemplateFields);
+      fromFilePaths(initialFiles);
+    }
   }, [initialFiles, initialTemplateFields]);
+
   const files = useFileStore((state) => state.files);
   const clearFiles = useFileStore((state) => state.clearFiles);
   const uploadedFiles = React.useMemo(
