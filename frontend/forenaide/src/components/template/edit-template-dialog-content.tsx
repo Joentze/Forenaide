@@ -21,6 +21,7 @@ import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
+import { apiEndpoint } from "@/lib/api";
 
 interface IEditTemplateDialogContent {
   refetchFn: (options?: RefetchOptions) => Promise<QueryObserverResult>;
@@ -56,7 +57,7 @@ export default function EditTemplateDialogContent({
         throw new Error(error.message);
       }
       if (success) {
-        const response = await fetch(`http://127.0.0.1:8000/templates/${id}`, {
+        const response = await fetch(`${apiEndpoint}/templates/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

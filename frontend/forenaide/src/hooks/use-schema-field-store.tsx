@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { SchemaField } from "@/types/schema-field";
+import { supabaseEdgeFunctionEndpoint } from "@/lib/api";
 
 interface FileStoreState {
   loading: boolean;
@@ -48,7 +49,7 @@ const useSchemaFieldStore = create<FileStoreState>()((set) => ({
     }));
 
     const response = await fetch(
-      "http://127.0.0.1:54321/functions/v1/generate-schema",
+      `${supabaseEdgeFunctionEndpoint}/generate-schema`,
       {
         method: "POST",
         headers: {

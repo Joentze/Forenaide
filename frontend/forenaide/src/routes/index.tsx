@@ -22,6 +22,7 @@ import {
   FilePreview,
   SchemaPreview,
 } from "@/components/schema";
+import { apiEndpoint } from "@/lib/api";
 
 type PipelineInfo = CreatePipelineRequest & {
   id: string;
@@ -55,7 +56,7 @@ function HomeComponent() {
 
   const getPipelineRuns = async () => {
     try {
-      const res = await fetch("http://localhost:8000/pipelines");
+      const res = await fetch(`${apiEndpoint}/pipelines`);
       if (!res.ok) {
         throw Error(res.statusText);
       }
@@ -182,7 +183,7 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
   const downloadCSV = async (pipelineId: string) => {
     try {
       const response = await fetch(
-        "http://localhost:8000/api/outputs/download/csv/" + pipelineId,
+        `${apiEndpoint}/api/outputs/download/csv/` + pipelineId,
         {
           method: "GET",
         }

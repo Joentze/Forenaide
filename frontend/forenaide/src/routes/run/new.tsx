@@ -14,6 +14,7 @@ import TemplateConfig, { SchemaItem } from "./-components/TemplateConfig";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { z } from "zod";
 import { SchemaField } from "@/types/schema-field";
+import { apiEndpoint } from "@/lib/api";
 
 export const Route = createFileRoute("/run/new")({
   // component: PipelineComponent,
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/run/new")({
   loaderDeps: ({ search: { rerun } }) => ({ rerun }),
   loader: async ({ deps: { rerun } }) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/pipelines/${rerun}`);
+      const res = await fetch(`${apiEndpoint}/api/pipelines/${rerun}`);
       const data = await res.json();
       console.log(data);
       const { fields, file_paths: filePaths } = data as CreatePipelineRequest;
@@ -186,7 +187,7 @@ function PipelineComponent({
       return;
     }
 
-    const res = await fetch("http://localhost:8000/pipelines", {
+    const res = await fetch(`${apiEndpoint}/pipelines`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
