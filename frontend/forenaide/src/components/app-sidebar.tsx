@@ -22,6 +22,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Link } from "@tanstack/react-router";
 
 // Menu items.
 const items = [
@@ -63,8 +64,8 @@ export function AppSidebar() {
 										asChild
 										className="font-sans text-lg font-semibold m-1 pt-5 pb-5"
 									>
-										<a
-											href={item.url}
+										<Link
+											to={item.url}
 											style={
 												item.url === currentPath
 													? { background: "lightgrey" }
@@ -73,7 +74,7 @@ export function AppSidebar() {
 										>
 											<item.icon />
 											<span>{item.title}</span>
-										</a>
+										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
 							))}
