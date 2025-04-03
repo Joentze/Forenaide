@@ -15,6 +15,7 @@ import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { useDropzone } from "react-dropzone";
 import * as XLSX from "xlsx";
 import { Badge } from "../ui/badge";
+import FieldRenderer from "../field/field-renderer";
 
 export const templateResponseSchema = z.object({
     id: z.string().uuid(),
@@ -182,7 +183,7 @@ export function XlsxTemplateDialogContent() {
     };
 
     return (
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
                 <DialogTitle>Upload XLSX Template File</DialogTitle>
                 <DialogDescription>
@@ -201,14 +202,10 @@ export function XlsxTemplateDialogContent() {
                 </div>
             )}
             {schemaFields.length > 0 && (
-                <div className="flex flex-col gap-2">
-                    {schemaFields.map((field) => {
+                <div className="bg-gray-100 rounded-md py-4">
+                    {schemaFields.map((field, index) => {
                         return (
-                            <span className="flex flex-row bg-slate-100 p-2 rounded-md">
-                                <p className="font-mono">{field.name}</p>
-                                <span className="flex-grow" />
-                                <Badge>{field.type}</Badge>
-                            </span>
+                        <FieldRenderer field={field} />
                         );
                     })}
                 </div>
