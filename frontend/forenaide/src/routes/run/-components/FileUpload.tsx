@@ -233,6 +233,8 @@ export default function FileUpload({
     accept: {
       "image/*": [], // Accept images
       "application/pdf": [], // Accept PDFs
+      "application/msword": [], // Accept Word documents
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [], // Accept Word documents
     },
   });
 
