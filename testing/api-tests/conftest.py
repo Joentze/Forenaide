@@ -1,5 +1,4 @@
 import pytest
-import _pytest.skipping
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 from typing import Dict, Any, List, Optional
