@@ -87,9 +87,9 @@ async function uploadResultFiles(
     const { instances: rows } = result;
 
     const newFilename = name.replace(/[^a-zA-Z0-9]/g, "_");
-    console.log(rows)
+    console.log(rows);
     const csvString = convertToString(rows);
-    console.log(csvString)
+    console.log(csvString);
 
     const jsonString = JSON.stringify(result);
 
@@ -163,6 +163,7 @@ async function extractFromPdf({
   schema: Record<string, unknown>;
 }): Promise<object[]> {
   let instancesList: object[] | undefined = undefined;
+  console.log(166, JSON.stringify(LLMProviderMap[strategy] as LanguageModel));
   await generateText({
     model: LLMProviderMap[strategy] as LanguageModel,
     toolChoice: "required",
@@ -247,7 +248,9 @@ type JSONSchemaType = {
 
 function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
   if (!schema.type && schema.enum) {
-    return z.enum(schema.enum as [string, ...string[]]);
+    const enumSchema = z.enum(schema.enum as [string, ...string[]]);
+    console.log("Converted enum schema:", enumSchema);
+    return enumSchema;
   }
 
   switch (schema.type) {
@@ -269,6 +272,10 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
       if (schema.format === "uuid") {
         stringSchema = stringSchema.uuid();
       }
+      if (schema.description) {
+        stringSchema = stringSchema.describe(schema.description);
+      }
+      console.log("Converted string schema:", stringSchema);
       return stringSchema;
 
     case "number":
@@ -282,23 +289,46 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
       if (schema.maximum !== undefined) {
         numberSchema = numberSchema.max(schema.maximum);
       }
+      if (schema.description) {
+        numberSchema = numberSchema.describe(schema.description);
+      }
+      console.log("Converted number schema:", numberSchema);
       return numberSchema;
 
     case "boolean":
-      return z.boolean();
+      let booleanSchema = z.boolean();
+      if (schema.description) {
+        booleanSchema = booleanSchema.describe(schema.description);
+      }
+      console.log("Converted boolean schema:", booleanSchema);
+      return booleanSchema;
 
     case "null":
-      return z.null();
+      let nullSchema = z.null();
+      if (schema.description) {
+        nullSchema = nullSchema.describe(schema.description);
+      }
+      console.log("Converted null schema:", nullSchema);
+      return nullSchema;
 
     case "array":
-      if (!schema.items) {
-        return z.array(z.any());
+      let arraySchema = schema.items
+        ? z.array(convertJsonSchemaToZod(schema.items))
+        : z.array(z.any());
+      if (schema.description) {
+        arraySchema = arraySchema.describe(schema.description);
       }
-      return z.array(convertJsonSchemaToZod(schema.items));
+      console.log("Converted array schema:", arraySchema);
+      return arraySchema;
 
     case "object":
       if (!schema.properties) {
-        return z.record(z.any());
+        let recordSchema = z.record(z.any());
+        if (schema.description) {
+          recordSchema = recordSchema.describe(schema.description);
+        }
+        console.log("Converted record schema:", recordSchema);
+        return recordSchema;
       }
 
       const shape: Record<string, z.ZodType<any>> = {};
@@ -307,10 +337,20 @@ function convertJsonSchemaToZod(schema: JSONSchemaType): z.ZodType<any> {
         const propertySchema = convertJsonSchemaToZod(value);
         shape[key] = isRequired ? propertySchema : propertySchema.optional();
       }
-      return z.object(shape);
+      let objectSchema = z.object(shape);
+      if (schema.description) {
+        objectSchema = objectSchema.describe(schema.description);
+      }
+      console.log("Converted object schema:", objectSchema);
+      return objectSchema;
 
     default:
-      return z.any();
+      let anySchema = z.any();
+      if (schema.description) {
+        anySchema = anySchema.describe(schema.description);
+      }
+      console.log("Converted any schema:", anySchema);
+      return anySchema;
   }
 }
 
@@ -373,6 +413,7 @@ async function processAllMessages(messages: any) {
       processMessage(message)
     )
   );
+
   const msgIds = messages.map(({ msg_id }: { msg_id: string }) => {
     return msg_id;
   });
