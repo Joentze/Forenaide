@@ -29,6 +29,7 @@ type PipelineInfo = CreatePipelineRequest & {
   status: string;
   started_at: string;
   completed_at: string;
+  error_message: string;
 };
 
 enum Mode {
@@ -41,6 +42,13 @@ enum Mode {
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
+
+function utcToLocal(timestamp: string) {
+  const utc = new Date(timestamp);
+  const offset = utc.getTimezoneOffset();
+  const local = new Date(utc.getTime() - offset * 60 * 1000);
+  return local.toLocaleString();
+}
 
 function HomeComponent() {
   const navigate = useNavigate();
@@ -242,7 +250,7 @@ function CompletedRuns({ pipelines }: { pipelines: PipelineInfo[] }) {
             </TableCell>
 
             <TableCell>
-              <p>{new Date(pipeline.started_at).toLocaleString()}</p>
+              <p>{utcToLocal(pipeline.started_at)}</p>
             </TableCell>
 
             <TableCell>
@@ -304,6 +312,9 @@ function IncompleteRuns({
           <TableHead className="w-[200px]">Started</TableHead>
           <TableHead className="w-[600px]">Files</TableHead>
           <TableHead className="w-[250px]">Template</TableHead>
+          {mode=== Mode.FAILED && (
+            <TableHead className="">Error Message</TableHead>
+          )}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -317,7 +328,7 @@ function IncompleteRuns({
             </TableCell>
 
             <TableCell>
-              <p>{new Date(pipeline.started_at).toLocaleString()}</p>
+              <p>{utcToLocal(pipeline.started_at)}</p>
             </TableCell>
 
             <TableCell>
@@ -342,6 +353,12 @@ function IncompleteRuns({
                 }
               />
             </TableCell>
+
+            { pipeline.status === Mode.FAILED &&
+              <TableCell>
+                {pipeline.error_message}
+              </TableCell>
+            }
           </TableRow>
         ))}
       </TableBody>
