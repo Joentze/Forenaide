@@ -22,6 +22,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Link, useRouter } from "@tanstack/react-router";
 
 // Menu items.
 const items = [
@@ -44,8 +45,7 @@ const items = [
 
 export function AppSidebar() {
 	// Add active route detection.
-	const currentPath =
-		typeof window !== "undefined" ? window.location.pathname : "";
+	const router = useRouter();
 
 	return (
 		<Sidebar>
@@ -63,17 +63,17 @@ export function AppSidebar() {
 										asChild
 										className="font-sans text-lg font-semibold m-1 pt-5 pb-5"
 									>
-										<a
-											href={item.url}
-											style={
-												item.url === currentPath
-													? { background: "lightgrey" }
-													: {}
-											}
+										<Link
+											to={item.url}
+											activeProps={{
+												style: {
+													background: "lightgray",
+												}
+											}}
 										>
 											<item.icon />
 											<span>{item.title}</span>
-										</a>
+										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
 							))}

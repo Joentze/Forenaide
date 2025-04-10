@@ -16,6 +16,7 @@ import { Textarea } from "../ui/textarea";
 import { useSchemaFieldStore } from "@/hooks/use-schema-field-store";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { apiEndpoint } from "@/lib/api";
 
 export function SaveTemplateDialog({
   children,
@@ -59,7 +60,7 @@ export function SaveTemplateDialog({
     }
 
     if (savedTemplate.success) {
-      const url = "http://127.0.0.1:8000/templates";
+      const url = `${apiEndpoint}/templates`;
       try {
         const response = await fetch(url, {
           method: "POST",

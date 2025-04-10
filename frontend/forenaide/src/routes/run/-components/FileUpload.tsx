@@ -20,6 +20,7 @@ import {
 } from "../../../lib/uploads";
 import { useToast } from "@/hooks/use-toast";
 import { FilePath } from "./Confirmation";
+import { apiEndpoint } from "@/lib/api";
 
 export interface FileStore {
   files: FileInfo[];
@@ -176,7 +177,7 @@ async function deleteFile(file: FileInfo): Promise<void | FileUploadResponse> {
   if (!file?.storageId) throw new Error("Invalid object ID");
 
   const res = await fetch(
-    "http://localhost:8000/api/data_sources/" + file?.storageId,
+    `${apiEndpoint}/api/data_sources/` + file?.storageId,
     {
       method: "DELETE",
     }
@@ -232,6 +233,8 @@ export default function FileUpload({
     accept: {
       "image/*": [], // Accept images
       "application/pdf": [], // Accept PDFs
+      "application/msword": [], // Accept Word documents
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [], // Accept Word documents
     },
   });
 
