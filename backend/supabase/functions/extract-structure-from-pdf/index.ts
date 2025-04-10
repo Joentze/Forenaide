@@ -403,6 +403,7 @@ async function processMessage(message: ExtractionMessageType) {
       "failed",
       `Error message: ${JSON.stringify(error)}`
     );
+    return;
   }
   await updatePipelineRunStatus(runId, "completed");
 }
